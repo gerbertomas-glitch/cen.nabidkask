@@ -1,89 +1,276 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html lang="cs">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Kalkulátor Ponuky - Finálna Verzia</title>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kalkulátor Nabídky - Optimalizovaná verze (EUR)</title>
+    <!-- Styly a skripty -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
     <style>
         /* --- ZÁKLADNÍ STYLY --- */
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
 
         :root {
-            --primary-color:#34a853;
-            --secondary-color:#4285F4;
-            --background-color:#f1f3f4;
-            --text-color:#3c4043;
-            --card-bg-color:#ffffff;
-            --border-color:#dadce0;
-            --star-color:#fbbc04;
-            --danger-color:#d93025;
-            
+            --primary-color: #34a853;
+            --secondary-color: #4285F4;
+            --background-color: #f1f3f4;
+            --text-color: #3c4043;
+            --card-bg-color: #ffffff;
+            --border-color: #dadce0;
+            --star-color: #fbbc04;
+            --danger-color: #d93025;
             --color-mini: #f9bc15;
             --color-basic: #4285f4;
             --color-professional: #34a853;
             --color-premium: #ee4036;
         }
 
-        * { box-sizing: border-box; }
-        body { font-family: 'Poppins', sans-serif; background: var(--background-color); color: var(--text-color); margin: 0; padding: 20px; }
-        .app-container { max-width: 1100px; margin: 0 auto; display: grid; gap: 25px; }
-        h1, h2, h3, h4, h5 { color: #202124; font-weight: 600; }
-        h1 { text-align: center; border-bottom: 2px solid var(--border-color); padding-bottom: 15px; margin-top: 0; }
-        .card { background: var(--card-bg-color); border-radius: 8px; box-shadow: 0 1px 2px rgba(60,64,67,.3), 0 2px 6px 2px rgba(60,64,67,.15); padding: 25px; }
-        .hidden { display: none !important; }
-        .btn { background: var(--primary-color); color: #fff; padding: 10px 20px; border: none; border-radius: 5px; font-size: 16px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-decoration: none; }
-        .btn:hover { background: #2f9446; }
-        .btn:disabled { background: #aaa; cursor: not-allowed; }
-        .step-footer { display:flex; justify-content:flex-end; align-items:center; gap:10px; margin-top:20px; flex-wrap:wrap; }
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+        }
+
+        .app-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: grid;
+            gap: 25px;
+        }
+
+        h1, h2, h3, h4, h5 {
+            color: #202124;
+            font-weight: 600;
+        }
+
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 15px;
+            margin-top: 0;
+        }
+
+        .card {
+            background: var(--card-bg-color);
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(60, 64, 67, .3), 0 2px 6px 2px rgba(60, 64, 67, .15);
+            padding: 25px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .btn {
+            background: var(--primary-color);
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background: #2f9446;
+        }
+
+        .btn:disabled {
+            background: #aaa;
+            cursor: not-allowed;
+        }
+
+        .step-footer {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
 
         /* --- STYLY PRO CENOVOU NABÍDKU --- */
-        .offer-category { margin-bottom: 45px; }
-        .offer-category:last-child { margin-bottom: 0; }
-        h3.section-title { font-size: 1.5em; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 20px;}
-        h3.section-title i { margin-right: 12px; color: var(--primary-color); }
-        h4.offer-subtitle {
-            font-size: 1.4em; color: #202124; border-bottom: 2px solid var(--primary-color);
-            padding-bottom: 8px; margin-bottom: 20px; font-weight: 600;
+        .offer-category {
+            margin-bottom: 45px;
         }
-        
-        .comparison-table-wrapper { overflow-x: auto; padding-bottom: 10px; }
-        .comparison-table { display: grid; grid-template-columns: minmax(200px, 1.5fr) repeat(4, minmax(140px, 1fr)); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; min-width: 750px; }
-        .comparison-table > div { padding: 12px 15px; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 0.9em; border-bottom: 1px solid var(--border-color); }
-        .table-header { background-color: #f8f9fa; font-weight: 700; font-size: 1.1em !important; color: #fff; flex-direction: column; line-height: 1.2; }
-        .table-header.header-mini { background-color: var(--color-mini); } .table-header.header-basic { background-color: var(--color-basic); } .table-header.header-professional { background-color: var(--color-professional); } .table-header.header-premium { background-color: var(--color-premium); }
-        .table-header-placeholder { background-color: #f8f9fa; }
-        .service-name, .table-row-label { justify-content: flex-start; text-align: left; font-weight: 600; background-color: #f8f9fa; color: #202124; }
-        .service-sub-name { justify-content: flex-start; text-align: left; padding-left: 30px !important; font-weight: 400; }
-        
-        .icon-check { color: var(--primary-color); font-weight: bold; font-size: 1.4em; }
-        .icon-times { color: #aaa; font-weight: bold; font-size: 1.4em; }
 
-        .table-price { 
-            font-weight: 700; 
-            font-size: 1.2em !important; 
-            color: var(--text-color); 
+        .offer-category:last-child {
+            margin-bottom: 0;
+        }
+
+        h3.section-title {
+            font-size: 1.5em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        h3.section-title i {
+            margin-right: 12px;
+            color: var(--primary-color);
+        }
+
+        h4.offer-subtitle {
+            font-size: 1.4em;
+            color: #202124;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .comparison-table-wrapper {
+            overflow-x: auto;
+            padding-bottom: 10px;
+        }
+
+        .comparison-table {
+            display: grid;
+            grid-template-columns: minmax(200px, 1.5fr) repeat(4, minmax(140px, 1fr));
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            min-width: 750px;
+        }
+
+        .comparison-table > div {
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.9em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table-header {
+            background-color: #f8f9fa;
+            font-weight: 700;
+            font-size: 1.1em !important;
+            color: #fff;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .table-header.header-mini {
+            background-color: var(--color-mini);
+        }
+
+        .table-header.header-basic {
+            background-color: var(--color-basic);
+        }
+
+        .table-header.header-professional {
+            background-color: var(--color-professional);
+        }
+
+        .table-header.header-premium {
+            background-color: var(--color-premium);
+        }
+
+        .table-header-placeholder {
+            background-color: #f8f9fa;
+        }
+
+        .service-name,
+        .table-row-label {
+            justify-content: flex-start;
+            text-align: left;
+            font-weight: 600;
+            background-color: #f8f9fa;
+            color: #202124;
+        }
+
+        .service-sub-name {
+            justify-content: flex-start;
+            text-align: left;
+            padding-left: 30px !important;
+            font-weight: 400;
+        }
+
+        .icon-check {
+            color: var(--primary-color);
+            font-weight: bold;
+            font-size: 1.4em;
+        }
+
+        .icon-times {
+            color: #aaa;
+            font-weight: bold;
+            font-size: 1.4em;
+        }
+
+        .table-price {
+            font-weight: 700;
+            font-size: 1.2em !important;
+            color: var(--text-color);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
         }
-        .table-footer { font-weight: 600; background-color: #f1f3f4; }
-        .table-select { cursor: pointer; font-weight: 600; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; text-align: center;}
-        .table-select input { width: 1.3em; height: 1.3em; flex-shrink: 0; cursor: pointer;}
-        .comparison-table > div:nth-last-child(-n+5) { border-bottom: none; }
-        .package-savings { font-size: 0.8em; color: var(--primary-color); font-weight: 600; display: block; margin-top: 5px; }
-        .savings-amount { color: var(--primary-color); }
+
+        .table-footer {
+            font-weight: 600;
+            background-color: #f1f3f4;
+        }
+
+        .table-select {
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-align: center;
+        }
+
+        .table-select input {
+            width: 1.3em;
+            height: 1.3em;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .comparison-table > div:nth-last-child(-n+5) {
+            border-bottom: none;
+        }
+
+        .package-savings {
+            font-size: 0.8em;
+            color: var(--primary-color);
+            font-weight: 600;
+            display: block;
+            margin-top: 5px;
+        }
+
+        .savings-amount {
+            color: var(--primary-color);
+        }
+
         .payment-select-container {
             display: flex;
             justify-content: center;
             align-items: center;
             padding: 8px 0;
         }
+
         .payment-select {
             padding: 8px;
             border-radius: 5px;
@@ -95,18 +282,60 @@
             outline: none;
             transition: all 0.2s ease-in-out;
         }
+
         .payment-select:hover {
             border-color: var(--primary-color);
         }
 
-        .flexible-services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .service-item { display: flex; align-items: center; gap: 12px; background: #fff; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.95em; cursor: pointer; transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s; }
-        .service-item:hover { border-color: var(--primary-color); box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .service-item input[type="checkbox"] { width: 1.3em; height: 1.3em; flex-shrink: 0; cursor: pointer; }
-        .service-item .price-note { margin-left: auto; font-weight: 600; color: var(--text-color); white-space: nowrap; background: #e9ecef; padding: 3px 8px; border-radius: 4px; font-size: 0.9em; }
-        
-        .table-row-odd { background-color: #f8f9fa; }
-        .table-row-even { background-color: #f1f3f4; }
+        .flexible-services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #fff;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            font-size: 0.95em;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s;
+        }
+
+        .service-item:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .service-item input[type="checkbox"] {
+            width: 1.3em;
+            height: 1.3em;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        .service-item .price-note {
+            margin-left: auto;
+            font-weight: 600;
+            color: var(--text-color);
+            white-space: nowrap;
+            background: #e9ecef;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+
+        .table-row-odd {
+            background-color: #f8f9fa;
+        }
+
+        .table-row-even {
+            background-color: #f1f3f4;
+        }
 
         /* --- STYLY PRO REKAPITULACI --- */
         #summary-section {
@@ -114,6 +343,7 @@
             padding-top: 25px;
             border-top: 2px solid var(--border-color);
         }
+
         .summary-item {
             display: grid;
             grid-template-columns: 30px 1fr 140px 140px 120px;
@@ -122,7 +352,11 @@
             padding: 12px 0;
             border-bottom: 1px solid #eee;
         }
-        .summary-item:last-child { border-bottom: none; }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
         .remove-summary-item {
             background: none;
             border: none;
@@ -134,9 +368,15 @@
             line-height: 1;
             transition: color 0.2s;
         }
-        .remove-summary-item:hover { color: var(--danger-color); }
 
-        .summary-item-name { font-weight: 500; }
+        .remove-summary-item:hover {
+            color: var(--danger-color);
+        }
+
+        .summary-item-name {
+            font-weight: 500;
+        }
+
         .summary-item-name .discount-info {
             font-size: 0.8em;
             font-weight: 600;
@@ -144,9 +384,26 @@
             display: block;
             margin-top: 4px;
         }
-        .summary-item-controls { display: flex; align-items: center; gap: 8px; justify-self: end; }
-        .summary-item-controls label { font-size: 0.9em; }
-        .summary-item-controls input { width: 60px; padding: 5px; border: 1px solid var(--border-color); border-radius: 4px; text-align: center;}
+
+        .summary-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-self: end;
+        }
+
+        .summary-item-controls label {
+            font-size: 0.9em;
+        }
+
+        .summary-item-controls input {
+            width: 60px;
+            padding: 5px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            text-align: center;
+        }
+
         .summary-item-payment-type {
             font-size: 0.8em;
             font-weight: 600;
@@ -157,19 +414,51 @@
             margin-right: 8px;
             white-space: nowrap;
         }
-        .summary-item-price { font-size: 0.9em; text-align: right; color: #5f6368; }
-        .summary-item-price .price-original { text-decoration: line-through; }
-        .summary-item-price .price-discounted { font-weight: 600; color: var(--text-color); display: block; font-size: 1.1em; }
+
+        .summary-item-price {
+            font-size: 0.9em;
+            text-align: right;
+            color: #5f6368;
+        }
+
+        .summary-item-price .price-original {
+            text-decoration: line-through;
+        }
+
+        .summary-item-price .price-discounted {
+            font-weight: 600;
+            color: var(--text-color);
+            display: block;
+            font-size: 1.1em;
+        }
+
         .summary-final-totals {
             margin-top: 20px;
             padding-top: 20px;
             border-top: 2px solid var(--primary-color);
             font-size: 1.1em;
         }
-        .summary-final-totals div { margin-bottom: 8px; }
-        #final-total-price { font-size: 1.5em; font-weight: 700; color: var(--primary-color); }
-        #total-discount-amount { font-weight: 600; color: var(--danger-color); }
-        #total-savings-amount { font-weight: 600; color: var(--primary-color); }
+
+        .summary-final-totals div {
+            margin-bottom: 8px;
+        }
+
+        #final-total-price {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        #total-discount-amount {
+            font-weight: 600;
+            color: var(--danger-color);
+        }
+
+        #total-savings-amount {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
         .summary-total-item {
             display: grid;
             grid-template-columns: 1fr auto;
@@ -178,43 +467,53 @@
             font-size: 1em;
             margin-bottom: 10px;
         }
+
         .summary-total-item strong {
             font-size: 1.2em;
         }
+
         .summary-sub-total-item {
             padding-left: 20px;
             font-size: 0.9em;
             color: #5f6368;
         }
+
         .total-label {
-          text-align: right;
+            text-align: right;
         }
+
         .total-value {
-          text-align: left;
+            text-align: left;
         }
+
         .summary-final-totals-grid {
             display: grid;
             grid-template-columns: 1fr auto;
             gap: 10px 15px;
             font-size: 1.1em;
         }
+
         .summary-final-totals-grid .label {
             text-align: left;
         }
+
         .summary-final-totals-grid .value {
             text-align: right;
         }
+
         .summary-final-totals-grid .total-price {
             font-size: 1.5em;
             font-weight: 700;
             color: var(--primary-color);
         }
+
         .summary-final-totals-grid .vat-note {
             font-weight: 400;
             font-size: 0.8em;
             color: #5f6368;
             margin-left: 8px;
         }
+
         .summary-final-totals-grid hr {
             grid-column: 1 / -1;
             border: 0;
@@ -235,19 +534,29 @@
             align-items: center;
             z-index: 1000;
         }
+
         .modal-content {
             background: var(--card-bg-color);
             padding: 30px;
             border-radius: 8px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
             width: 90%;
             max-width: 500px;
             animation: fadeIn 0.3s ease-out;
         }
+
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
+
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -256,10 +565,12 @@
             padding-bottom: 15px;
             margin-bottom: 20px;
         }
+
         .modal-header h3 {
             margin: 0;
             font-size: 1.5em;
         }
+
         .close-modal-btn {
             background: none;
             border: none;
@@ -268,17 +579,21 @@
             color: #aaa;
             line-height: 1;
         }
+
         .close-modal-btn:hover {
             color: var(--danger-color);
         }
+
         .modal-body .form-group {
             margin-bottom: 15px;
         }
+
         .modal-body label {
             display: block;
             margin-bottom: 5px;
             font-weight: 500;
         }
+
         .modal-body input {
             width: 100%;
             padding: 10px;
@@ -286,6 +601,14 @@
             border-radius: 5px;
             font-size: 1em;
         }
+
+        /* Styl pro checkbox generování */
+        #generate-only-quote {
+            width: 20px !important;
+            height: 20px !important;
+            margin: 0 !important;
+        }
+
         .modal-footer {
             margin-top: 25px;
             display: flex;
@@ -293,25 +616,344 @@
             gap: 10px;
             justify-content: flex-end;
         }
+
+        /* --- STYLY PRO MŘÍŽKU 4 PILÍŘŮ --- */
+        .pillars-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .pillar-item p {
+            font-size: 12px;
+            line-height: 1.45;
+            color: #555;
+            margin: 0;
+            padding: 0;
+        }
+
+        .pillar-item p strong {
+            color: #34a853;
+            font-weight: 600;
+        }
+
+        .pillar-item p strong.title {
+            color: #202124;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 3px;
+            font-size: 1.1em;
+        }
+
+        /* --- STYLY PRO MINIMALISTICKOU "HADÍ" MŘÍŽKU --- */
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 6px;
+            margin-top: 15px;
+        }
+
+        .timeline-event {
+            padding: 5px;
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+            background: #fdfdfd;
+        }
+
+        .timeline-content .year {
+            font-size: 0.9em;
+            font-weight: 700;
+            color: #202124;
+            border-bottom: 1px solid #34a853;
+            padding-bottom: 2px;
+            margin-bottom: 4px;
+        }
+
+        .timeline-content strong {
+            color: #34a853;
+            font-weight: 600;
+        }
+
+        .timeline-content ul {
+            margin-top: 4px;
+            padding-left: 10px;
+            list-style-type: disc;
+        }
+
+        .timeline-content li {
+            font-size: 9px;
+            line-height: 1.3;
+            color: #555;
+            border-bottom: none;
+            padding-bottom: 1px;
+            margin-bottom: 1px;
+            list-style-type: disc;
+        }
+
+        /* --- NOVÉ STYLY PRO STRÁNKU 2 (STATISTIKY) --- */
+        .stats-main-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: #202124;
+            margin-top: 30px;
+            margin-bottom: 8px;
+            text-align: left;
+        }
+
+        .stats-main-subtitle {
+            font-size: 13px;
+            font-weight: 400;
+            color: #555;
+            margin-top: 0;
+            margin-bottom: 25px;
+            text-align: left;
+            line-height: 1.5;
+        }
+
+        .stats-section {
+            margin-bottom: 15px;
+            /* ZMENŠENO */
+            --stat-color: #34a853;
+        }
+
+        .stats-section h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #202124;
+            border-bottom: 2px solid var(--stat-color);
+            padding-bottom: 6px;
+            margin-top: 0;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .stats-section h3 img {
+            height: 20px;
+            /* ZMENŠENO */
+            width: auto;
+            margin-left: 10px;
+            /* ZMENŠENO */
+        }
+
+        .stats-grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            /* ZMENŠENO */
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            /* ZMENŠENO */
+            background: #fdfdfd;
+            padding: 8px;
+            /* ZMENŠENO */
+            border: 1px solid #f0f0f0;
+            border-radius: 5px;
+            min-height: 70px;
+            /* ZMENŠENO */
+        }
+
+        .stat-circle-container {
+            position: relative;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+
+        /* OPRAVENÝ KRUHOVÝ GRAF: Použití vícenásobného pozadí pro lepší kompatibilitu s html2canvas */
+        .stat-circle {
+            width: 60px;
+            /* ZMENŠENO */
+            height: 60px;
+            /* ZMENŠENO */
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            /* NOVÁ IMPLEMENTACE: Využívá kombinaci radial-gradient (střed) a conic-gradient (prstenec) */
+            background: radial-gradient(circle at center, #ffffff 75%, transparent 75%),
+                conic-gradient(var(--stat-color) calc(var(--percent) * 1%), #f0f0f0 0);
+        }
+
+        .stat-circle::before {
+            /* Původní pseudo-element je nyní deaktivován */
+            display: none;
+            content: none;
+        }
+
+        .stat-circle-percent {
+            position: absolute;
+            font-size: 16px;
+            /* ZMENŠENO */
+            font-weight: 700;
+            color: #202124;
+            z-index: 2;
+            /* Zajišťuje, že procenta jsou viditelná */
+        }
+
+        .stat-content h4 {
+            margin: 0 0 3px 0;
+            /* ZMENŠENO */
+            font-size: 13px;
+            /* ZMENŠENO */
+            color: var(--stat-color);
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .stat-content p {
+            font-size: 11px;
+            /* ZMENŠENO */
+            line-height: 1.3;
+            /* ZMENŠENO */
+            color: #555;
+            margin: 0;
+        }
+
+        .stat-content strong {
+            color: #202124;
+            font-weight: 600;
+        }
+
+        /* --- STYLY PRO STRÁNKU 4 (ROZSAH SLUŽEB) --- */
+        .scope-item {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .scope-item:last-child {
+            border-bottom: none;
+        }
+
+        .scope-item h4 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #34a853;
+            margin-top: 0;
+            margin-bottom: 8px;
+        }
+
+        .scope-item p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #555;
+            margin: 0;
+        }
+
+        .scope-item .scope-details {
+            font-size: 11px;
+            font-weight: 600;
+            color: #777;
+            background: #f8f9fa;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 8px;
+        }
+
+        /* --- STYLY PRO STRÁNKU 5 (KONTAKTY) --- */
+        .stats-summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px 20px;
+            margin-top: 15px;
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #f0f0f0;
+        }
+
+        .stat-summary-item {
+            text-align: left;
+        }
+
+        .stat-summary-item .number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #34a853;
+            line-height: 1.1;
+            margin: 0;
+        }
+
+        .stat-summary-item .label {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.3;
+            margin: 0;
+        }
+
+        .client-logos-container {
+            padding: 0;
+            background: #fff;
+            border: none;
+            text-align: center;
+        }
+
+        /* Styl pro kontejner PDF stránky */
+        .pdf-page-container {
+            position: relative;
+            /* Nutné pro absolutní pozicování patičky */
+            font-family: sans-serif;
+            color: #3c4043;
+            max-width: 800px;
+            /* Vnitřní obsah stránky */
+            margin: 0 auto;
+            padding: 40px 40px 70px 40px;
+            /* Zvětšený spodní padding pro patičku (bylo 60) */
+            min-height: 1123px;
+            /* Výška A4 */
+            display: flex;
+            flex-direction: column;
+            background-color: #fff;
+            /* Přidáno pozadí pro jistotu */
+        }
+
+        /* Styl pro patičku PDF */
+        .pdf-footer {
+            position: absolute;
+            bottom: 40px;
+            /* Vzdálenost od spodního okraje */
+            left: 40px;
+            /* Vzdálenost od levého okraje (stejná jako padding) */
+            right: 40px;
+            /* Vzdálenost od pravého okraje (stejná jako padding) */
+            padding-top: 10px;
+            /* Malý odstup nad linkou */
+            border-top: 2px solid #34a853;
+            /* Zelená linka */
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            margin-top: auto;
+            /* Posune patičku dolů, pokud je obsah krátký */
+        }
     </style>
 </head>
-<body>
 
+<body>
     <div class="app-container">
-        
+        <!-- Sekce s výběrem služeb -->
         <section id="offer-section" class="card">
             <div id="offer-content">
                 <h3 class="section-title"><i class="fas fa-file-invoice-dollar"></i> Cenová ponuka</h3>
-
+                <!-- Zvýhodněné balíčky -->
                 <div class="offer-category">
                     <h4 class="offer-subtitle">Zvýhodnené balíčky</h4>
                     <div class="comparison-table-wrapper">
                         <div class="comparison-table">
+                            <!-- Hlavičky tabulky -->
                             <div class="table-header-placeholder"></div>
                             <div class="table-header header-mini">MINI</div>
                             <div class="table-header header-basic">BASIC</div>
                             <div class="table-header header-professional">PROFESSIONAL</div>
-                            <div class="table-header header-premium">INDIVIDUÁLNY</div>
+                            <div class="table-header header-premium">INDIVIDUAL</div>
+                            <!-- Řádky služeb -->
                             <div class="service-name">Optimalizácia profilu</div>
                             <div class="table-cell"><span class="icon-check">✓</span></div>
                             <div class="table-cell"><span class="icon-check">✓</span></div>
@@ -359,15 +1001,18 @@
                             <div class="table-cell">Individuálne</div>
                             <div class="service-sub-name">Video</div>
                             <div class="table-cell"><span class="icon-times">✗</span></div>
-                            <div class="table-cell">2x do 30 sek</div>
-                            <div class="table-cell">6x do 30 sek</div>
+                            <div class="table-cell">2x do 30 sec</div>
+                            <div class="table-cell">6x do 30 sec</div>
                             <div class="table-cell">Individuálne</div>
+                            <!-- Patička tabulky - Ceny, Úspory, Výběr -->
                             <div class="table-footer service-name">CENA</div>
+                            <!-- CENY PŘECHOVÁVANÉ JAKO EUR (VAŠE HODNOTY) -->
                             <div class="table-footer table-price" data-price-yearly="839">839 €</div>
                             <div class="table-footer table-price" data-price-yearly="1269">1 269 €</div>
                             <div class="table-footer table-price" data-price-yearly="1689">1 689 €</div>
                             <div class="table-footer table-price" data-price-yearly="0">Individuálne</div>
                             <div class="table-footer service-name table-row-label table-row-odd">Úspora</div>
+                            <!-- ÚSPORY PŘECHOVÁVANÉ JAKO EUR (VAŠE HODNOTY) -->
                             <div class="table-footer table-price savings-amount table-row-odd" data-savings-yearly="118" data-savings-base="34" data-package-id="package_mini">118 €</div>
                             <div class="table-footer table-price savings-amount table-row-odd" data-savings-yearly="317" data-savings-base="155" data-package-id="package_basic">317 €</div>
                             <div class="table-footer table-price savings-amount table-row-odd" data-savings-yearly="357" data-savings-base="119" data-package-id="package_professional">357 €</div>
@@ -377,7 +1022,7 @@
                                 <select id="package_payment_term_select" name="package_payment_term" class="payment-select">
                                     <option value="yearly">Ročná</option>
                                     <option value="monthly">Mesačná</option>
-                                    <option value="quarterly">Štvrťročná</option>
+                                    <option value="quarterly">Kvartálna</option>
                                     <option value="half-yearly">Polročná</option>
                                 </select>
                             </div>
@@ -385,24 +1030,27 @@
                             <div class="table-footer payment-select-container table-row-even"></div>
                             <div class="table-footer payment-select-container table-row-even"></div>
                             <div class="table-footer service-name"></div>
+                            <!-- CENY V data-price JAKO EUR (VAŠE HODNOTY) -->
                             <div class="table-footer"><label class="table-select"><input type="checkbox" name="package" id="package_mini" data-price="839" data-price-yearly="839" data-name="Balíček MINI"> Vybrať</label></div>
                             <div class="table-footer"><label class="table-select"><input type="checkbox" name="package" id="package_basic" data-price="1269" data-price-yearly="1269" data-name="Balíček BASIC"> Vybrať</label></div>
                             <div class="table-footer"><label class="table-select"><input type="checkbox" name="package" id="package_professional" data-price="1689" data-price-yearly="1689" data-name="Balíček PROFESSIONAL"> Vybrať</label></div>
-                            <div class="table-footer"><label class="table-select"><input type="checkbox" name="package" id="package_premium" data-price="0" data-price-yearly="0" data-name="Balíček INDIVIDUÁLNY"> Vybrať</label></div>
+                            <div class="table-footer"><label class="table-select"><input type="checkbox" name="package" id="package_premium" data-price="0" data-price-yearly="0" data-name="Balíček INDIVIDUAL"> Vybrať</label></div>
                         </div>
                     </div>
                 </div>
-
+                <!-- Jednotlivé služby -->
                 <div class="offer-category">
                     <h4 class="offer-subtitle">Jednotlivé služby</h4>
-                    
+                    <!-- Google Moja Firma - Optimalizace -->
                     <h5>Google Moja Firma</h5>
                     <div class="flexible-services-grid" style="margin-bottom: 40px;">
+                        <!-- CENY V EUR (VAŠE HODNOTY) -->
                         <label class="service-item"><input type="checkbox" id="gmf_optimize_one" data-price="199" data-name="Optimalizácia bez ročnej správy"> Optimalizácia bez ročnej správy <span class="price-note">199 €</span></label>
                         <label class="service-item"><input type="checkbox" id="gmf_optimize_full" data-price="119" data-name="Optimalizácia vr. ročnej správy"> Optimalizácia vr. ročnej správy <span class="price-note">119 €</span></label>
-                        <label class="service-item"><input type="checkbox" id="gmf_update" data-price="85" data-name="Úprava firemného profilu"> Úprava firemného profilu <span class="price-note">85 €</span></label>
+                        <label class="service-item"><input type="checkbox" id="gmf_update" data-price="79" data-name="Úprava firemného profilu"> Úprava firemného profilu <span class="price-note">79 €</span></label>
                     </div>
 
+                    <!-- Správa Google Moja Firma -->
                     <h5>Správa Google Moja Firma</h5>
                     <div class="comparison-table-wrapper" style="margin-bottom: 40px;">
                         <div class="comparison-table">
@@ -422,11 +1070,13 @@
                             <div class="table-cell">40 ks</div>
                             <div class="table-cell">individuálne</div>
                             <div class="table-footer service-name table-row-label table-row-odd">CENA</div>
+                            <!-- CENY PŘECHOVÁVANÉ JAKO EUR (VAŠE HODNOTY) -->
                             <div class="table-footer table-price table-row-odd" data-management-price-monthly="41.9" data-management-price-yearly="419">419 €</div>
                             <div class="table-footer table-price table-row-odd" data-management-price-monthly="45.9" data-management-price-yearly="459">459 €</div>
                             <div class="table-footer table-price table-row-odd" data-management-price-monthly="49.9" data-management-price-yearly="499">499 €</div>
                             <div class="table-footer table-price table-row-odd">individuálne</div>
                             <div class="table-footer service-name table-row-label table-row-even">Úspora</div>
+                            <!-- ÚSPORY PŘECHOVÁVANÉ JAKO EUR (VAŠE HODNOTY) -->
                             <div class="table-footer table-price savings-amount table-row-even" data-gmf-savings-yearly="84" data-package-id="gmf_manage_mini">84 €</div>
                             <div class="table-footer table-price savings-amount table-row-even" data-gmf-savings-yearly="92" data-package-id="gmf_manage_basic">92 €</div>
                             <div class="table-footer table-price savings-amount table-row-even" data-gmf-savings-yearly="100" data-package-id="gmf_manage_pro">100 €</div>
@@ -436,7 +1086,7 @@
                                 <select id="gmf_manage_payment_term_select" name="gmf_manage_payment_term" class="payment-select">
                                     <option value="yearly">Ročná</option>
                                     <option value="monthly">Mesačná</option>
-                                    <option value="quarterly">Štvrťročná</option>
+                                    <option value="quarterly">Kvartálna</option>
                                     <option value="half-yearly">Polročná</option>
                                 </select>
                             </div>
@@ -444,98 +1094,106 @@
                             <div class="table-cell payment-select-container table-row-odd"></div>
                             <div class="table-cell payment-select-container table-row-odd"></div>
                             <div class="table-footer service-name"></div>
+                            <!-- CENY V data-price JAKO EUR (VAŠE HODNOTY) -->
                             <div class="table-footer"><label class="table-select"><input type="checkbox" name="management_package" id="gmf_manage_mini" data-price="419" data-price-monthly="41.9" data-price-yearly="419" data-name="Správa profilu MINI"> Vybrať</label></div>
                             <div class="table-footer"><label class="table-select"><input type="checkbox" name="management_package" id="gmf_manage_basic" data-price="459" data-price-monthly="45.9" data-price-yearly="459" data-name="Správa profilu BASIC"> Vybrať</label></div>
                             <div class="table-footer"><label class="table-select"><input type="checkbox" name="management_package" id="gmf_manage_pro" data-price="499" data-price-monthly="49.9" data-price-yearly="499" data-name="Správa profilu PROFESSIONAL"> Vybrať</label></div>
                             <div class="table-footer"><label class="table-select"><input type="checkbox" name="management_package" id="gmf_manage_premium" data-price="0" data-price-monthly="0" data-price-yearly="0" data-name="Správa profilu PREMIUM"> Vybrať</label></div>
                         </div>
                     </div>
-
+                    <!-- Google Street View -->
                     <h5>Google Street View</h5>
                     <div class="comparison-table-wrapper" style="margin-bottom: 40px;">
                         <div class="comparison-table">
-                                <div class="table-header-placeholder"></div>
-                                <div class="table-header header-mini">MINI</div>
-                                <div class="table-header header-basic">BASIC</div>
-                                <div class="table-header header-professional">PROFESSIONAL</div>
-                                <div class="table-header header-premium">PREMIUM</div>
-                                <div class="service-sub-name">Počet krokov</div>
-                                <div class="table-cell">2 - 10</div>
-                                <div class="table-cell">11 - 30</div>
-                                <div class="table-cell">31 - 60</div>
-                                <div class="table-cell">individuálne</div>
-                                <div class="service-sub-name">Klasické foto</div>
-                                <div class="table-cell">3 ks</div>
-                                <div class="table-cell">10 ks</div>
-                                <div class="table-cell">20 ks</div>
-                                <div class="table-cell">individuálne</div>
-                                <div class="table-footer service-name table-row-label table-row-even">CENA</div>
-                                <div class="table-footer table-price table-row-even" data-price="419">419 €</div>
-                                <div class="table-footer table-price table-row-even" data-price="629">629 €</div>
-                                <div class="table-footer table-price table-row-even" data-price="839">839 €</div>
-                                <div class="table-footer table-price table-row-even">individuálne</div>
-                                <div class="table-footer service-name"></div>
-                                <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsv_package" id="gsv_table_mini" data-price="419" data-name="GSV - MINI"> Vybrať</label></div>
-                                <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsv_package" id="gsv_table_basic" data-price="629" data-name="GSV - BASIC"> Vybrať</label></div>
-                                <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsv_package" id="gsv_table_pro" data-price="839" data-name="GSV - PROFESSIONAL"> Vybrať</label></div>
-                                <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsv_package" id="gsv_table-premium" data-price="0" data-name="GSV - PREMIUM"> Vybrať</label></div>
+                            <div class="table-header-placeholder"></div>
+                            <div class="table-header header-mini">MINI</div>
+                            <div class="table-header header-basic">BASIC</div>
+                            <div class="table-header header-professional">PROFESSIONAL</div>
+                            <div class="table-header header-premium">PREMIUM</div>
+                            <div class="service-sub-name">Počet krokov</div>
+                            <div class="table-cell">2 - 10</div>
+                            <div class="table-cell">11 - 30</div>
+                            <div class="table-cell">31 - 60</div>
+                            <div class="table-cell">individuálne</div>
+                            <div class="service-sub-name">Klasické foto</div>
+                            <div class="table-cell">3 ks</div>
+                            <div class="table-cell">10 ks</div>
+                            <div class="table-cell">20 ks</div>
+                            <div class="table-cell">individuálne</div>
+                            <div class="table-footer service-name table-row-label table-row-even">CENA</div>
+                            <!-- CENY PŘECHOVÁVANÉ JAKO EUR (VAŠE HODNOTY) -->
+                            <div class="table-footer table-price table-row-even" data-price="419">419 €</div>
+                            <div class="table-footer table-price table-row-even" data-price="629">629 €</div>
+                            <div class="table-footer table-price table-row-even" data-price="839">839 €</div>
+                            <div class="table-footer table-price table-row-even">individuálne</div>
+                            <div class="table-footer service-name"></div>
+                            <!-- CENY V data-price JAKO EUR (VAŠE HODNOTY) -->
+                            <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsv_package" id="gsv_table_mini" data-price="419" data-name="GSV - MINI"> Vybrať</label></div>
+                            <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsv_package" id="gsv_table_basic" data-price="629" data-name="GSV - BASIC"> Vybrať</label></div>
+                            <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsv_package" id="gsv_table_pro" data-price="839" data-name="GSV - PROFESSIONAL"> Vybrať</label></div>
+                            <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsv_package" id="gsv_table-premium" data-price="0" data-name="GSV - PREMIUM"> Vybrať</label></div>
                         </div>
                     </div>
-
+                    <!-- Google Street View AIR -->
                     <h5>Google Street View AIR</h5>
                     <div class="comparison-table-wrapper" style="margin-bottom: 40px;">
                         <div class="comparison-table">
-                                <div class="table-header-placeholder"></div>
-                                <div class="table-header header-mini">MINI</div>
-                                <div class="table-header header-basic">BASIC</div>
-                                <div class="table-header header-professional">PROFESSIONAL</div>
-                                <div class="table-header header-premium">PREMIUM</div>
-                                <div class="service-sub-name">Klasické foto</div>
-                                <div class="table-cell">3 - 5 ks</div>
-                                <div class="table-cell">6 - 15 ks</div>
-                                <div class="table-cell">16 - 25 ks</div>
-                                <div class="table-cell">individuálne</div>
-                                <div class="service-sub-name">360° foto</div>
-                                <div class="table-cell">2 ks</div>
-                                <div class="table-cell">6 ks</div>
-                                <div class="table-cell">12 ks</div>
-                                <div class="table-cell">individuálne</div>
-                                <div class="service-sub-name">Video</div>
-                                <div class="table-cell"><span class="icon-times">✗</span></div>
-                                <div class="table-cell">2x do 30 sek</div>
-                                <div class="table-cell">6x do 30 sek</div>
-                                <div class="table-cell">Individuálne</div>
-                                <div class="table-footer service-name table-row-label table-row-even">CENA</div>
-                                <div class="table-footer table-price table-row-even" data-price="249">249 €</div>
-                                <div class="table-footer table-price table-row-even" data-price="379">379 €</div>
-                                <div class="table-footer table-price table-row-even" data-price="589">589 €</div>
-                                <div class="table-footer table-price table-row-even">individuálne</div>
-                                <div class="table-footer service-name"></div>
-                                <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsva_package" id="gsva_table_mini" data-price="249" data-name="GSV AIR - MINI"> Vybrať</label></div>
-                                <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsva_package" id="gsva_table_basic" data-price="379" data-name="GSV AIR - BASIC"> Vybrať</label></div>
-                                <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsva_package" id="gsva_table_pro" data-price="589" data-name="GSV AIR - PROFESSIONAL"> Vybrať</label></div>
-                                <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsva_package" id="gsva_table-premium" data-price="0" data-name="GSV AIR - PREMIUM"> Vybrať</label></div>
+                            <div class="table-header-placeholder"></div>
+                            <div class="table-header header-mini">MINI</div>
+                            <div class="table-header header-basic">BASIC</div>
+                            <div class="table-header header-professional">PROFESSIONAL</div>
+                            <div class="table-header header-premium">PREMIUM</div>
+                            <div class="service-sub-name">Klasické foto</div>
+                            <div class="table-cell">3 - 5 ks</div>
+                            <div class="table-cell">6 - 15 ks</div>
+                            <div class="table-cell">16 - 25 ks</div>
+                            <div class="table-cell">individuálne</div>
+                            <div class="service-sub-name">360° foto</div>
+                            <div class="table-cell">2 ks</div>
+                            <div class="table-cell">6 ks</div>
+                            <div class="table-cell">12 ks</div>
+                            <div class="table-cell">individuálne</div>
+                            <div class="service-sub-name">Video</div>
+                            <div class="table-cell"><span class="icon-times">✗</span></div>
+                            <div class="table-cell">2x do 30 sec</div>
+                            <div class="table-cell">6x do 30 sec</div>
+                            <div class="table-cell">Individuálne</div>
+                            <div class="table-footer service-name table-row-label table-row-even">CENA</div>
+                            <!-- CENY PŘECHOVÁVANÉ JAKO EUR (VAŠE HODNOTY) -->
+                            <div class="table-footer table-price table-row-even">249 €</div>
+                            <div class="table-footer table-price table-row-even">379 €</div>
+                            <div class="table-footer table-price table-row-even">589 €</div>
+                            <div class="table-footer table-price table-row-even">individuálne</div>
+                            <div class="table-footer service-name"></div>
+                            <!-- CENY V data-price JAKO EUR (VAŠE HODNOTY) -->
+                            <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsva_package" id="gsva_table_mini" data-price="249" data-name="GSV AIR - MINI"> Vybrať</label></div>
+                            <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsva_package" id="gsva_table_basic" data-price="379" data-name="GSV AIR - BASIC"> Vybrať</label></div>
+                            <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsva_package" id="gsva_table_pro" data-price="589" data-name="GSV AIR - PROFESSIONAL"> Vybrať</label></div>
+                            <div class="table-footer"><label class="table-select"><input type="checkbox" name="gsva_package" id="gsva_table-premium" data-price="0" data-name="GSV AIR - PREMIUM"> Vybrať</label></div>
                         </div>
                     </div>
-                    
+                    <!-- Doplňkové služby -->
                     <h5>Doplnkové služby</h5>
                     <div class="flexible-services-grid" style="margin-bottom: 40px;">
+                        <!-- CENY V EUR (VAŠE HODNOTY) -->
                         <label class="service-item">
-                            <input type="checkbox" name="gsv_car_option" id="gsv_car_with_gsv" data-price="169" data-name="GSV CAR / HELMA (vrátane GSV)">
-                            GSV CAR / HELMA (vrátane GSV)
-                            <span class="price-note">od 169 €</span>
+                            <input type="checkbox" name="gsv_car_option" id="gsv_car_with_gsv" data-price="249" data-name="GSV CAR / PRILBA (vrátane GSV)">
+                            GSV CAR / PRILBA (vrátane GSV)
+                            <span class="price-note">od 249 €</span>
                         </label>
                         <label class="service-item">
-                            <input type="checkbox" name="gsv_car_option" id="gsv_car_without_gsv" data-price="379" data-name="GSV CAR / HELMA (bez GSV)">
-                            GSV CAR / HELMA (bez GSV)
+                            <input type="checkbox" name="gsv_car_option" id="gsv_car_without_gsv" data-price="379" data-name="GSV CAR / PRILBA (bez GSV)">
+                            GSV CAR / PRILBA (bez GSV)
                             <span class="price-note">od 379 €</span>
                         </label>
                     </div>
-
+                    <!-- NFC Produkty -->
                     <h5>NFC Produkty</h5>
                     <div class="flexible-services-grid">
+                        <!-- CENY V EUR (VAŠE HODNOTY) -->
                         <label class="service-item"><input type="checkbox" id="nfc_karta" data-price="39" data-price-tier="34" data-name="NFC Karta / vizitka"> NFC Karta / vizitka<span class="price-note">39 €</span></label>
-                        <label class="service-item"><input type="checkbox" id="nfc_stojanek" data-price="56" data-price-tier="38" data-name="NFC Stojan"> NFC Stojan<span class="price-note">56 €</span></label>
+                        <label class="service-item"><input type="checkbox" id="nfc_stojanek" data-price="56" data-price-tier="48" data-name="NFC Stojan"> NFC Stojan<span class="price-note">56 €</span></label>
+                        <label class="service-item"><input type="checkbox" id="nfc_stojanek_maly" data-price="39" data-price-tier="34" data-name="NFC Stojan Malý"> NFC Stojan Malý<span class="price-note">39 €</span></label>
                         <label class="service-item"><input type="checkbox" id="nfc_plaketa_hranata" data-price="39" data-price-tier="34" data-name="NFC Plaketa hranatá"> NFC Plaketa hranatá<span class="price-note">39 €</span></label>
                         <label class="service-item"><input type="checkbox" id="nfc_plaketa_menu" data-price="39" data-price-tier="34" data-name="NFC Plaketa menu"> NFC Plaketa menu<span class="price-note">39 €</span></label>
                         <label class="service-item"><input type="checkbox" id="nfc_plaketa_kulata" data-price="39" data-price-tier="34" data-name="NFC Plaketa okrúhla"> NFC Plaketa okrúhla<span class="price-note">39 €</span></label>
@@ -543,7 +1201,7 @@
                     </div>
                 </div>
             </div>
-
+            <!-- Sekce s rekapitulací -->
             <div id="summary-section" class="hidden">
                 <h4 class="offer-subtitle">Rekapitulácia ponuky</h4>
                 <div id="summary-recurring-wrapper" class="hidden">
@@ -554,42 +1212,31 @@
                     <h5>Jednorazové platby</h5>
                     <div id="summary-onetime-list"></div>
                 </div>
-
+                <!-- Celkový souhrn -->
                 <h4 class="offer-subtitle" style="border-bottom: none; margin-bottom: 5px; margin-top: 40px;">Celkový súhrn</h4>
                 <div class="summary-final-totals">
                     <div class="summary-final-totals-grid">
                         <span class="label">Celková zľava:</span>
                         <span class="value" id="total-discount-amount">0 €</span>
                         <hr>
-                        <span class="label">Spolu paušálne platby:</span>
+                        <span class="label">Celkom paušálne platby:</span>
                         <strong class="value" id="total-recurring-price">0 €</strong>
-                        <span class="label summary-sub-total-item">Spolu ročné platby:</span>
-                        <span class="value" id="total-yearly-price">0 €</span>
-                        <span class="label summary-sub-total-item">Spolu štvrťročné platby:</span>
-                        <span class="value" id="total-quarterly-price">0 €</span>
-                        <span class="label summary-sub-total-item">Spolu polročné platby:</span>
-                        <span class="value" id="total-half-yearly-price">0 €</span>
-                        <span class="label summary-sub-total-item">Spolu mesačné platby:</span>
-                        <span class="value" id="total-monthly-price">0 €</span>
                         <hr>
-                        <span class="label">Spolu jednorazové platby:</span>
+                        <span class="label">Celkom jednorazové platby:</span>
                         <strong class="value" id="total-onetime-price">0 €</strong>
                         <hr>
-                        <span class="label"><strong>Celkom bez DPH:</strong></span>
-                        <strong class="value" id="total-subtotal-price">0 €</strong>
-                        <span class="label total-price"><strong>Celkom s DPH (23%):</strong></span>
-                        <strong class="value total-price" id="final-total-price">0 €</strong>
+                        <span class="label total-price">CELKOM (bez DPH):</span>
+                        <strong class="value total-price" id="final-total-price-display">0 €</strong>
                     </div>
                 </div>
             </div>
-
+            <!-- Tlačítko pro generování -->
             <div class="step-footer">
                 <button type="button" id="open-modal-btn" class="btn"><i class="fas fa-file-alt"></i> Generovať ponuku</button>
             </div>
         </section>
-
     </div>
-
+    <!-- Modální okno pro doplňující informace -->
     <div id="info-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -601,7 +1248,7 @@
                     <label for="company-name">Názov spoločnosti</label>
                     <input type="text" id="company-name" placeholder="Napr. Stavebniny Novák s.r.o.">
                 </div>
-                 <div class="form-group">
+                <div class="form-group">
                     <label for="company-id">IČO</label>
                     <input type="text" id="company-id" placeholder="Napr. 12345678">
                 </div>
@@ -611,11 +1258,18 @@
                 </div>
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="Napr. jan.novak@email.sk">
+                    <input type="email" id="email" placeholder="Napr. jan.novak@email.cz">
                 </div>
                 <div class="form-group">
                     <label for="phone">Telefón</label>
-                    <input type="tel" id="phone" placeholder="Napr. +421 123 456 789">
+                    <input type="tel" id="phone" placeholder="Napr. +420 123 456 789">
+                </div>
+                <!-- NOVÁ MOŽNOST PRO GENERACIU POUZE NABÍDKY -->
+                <div class="form-group" style="margin-top: 25px; border-top: 1px solid #eee; padding-top: 15px;">
+                    <label style="display: flex; align-items: center; gap: 10px; font-weight: 600;">
+                        <input type="checkbox" id="generate-only-quote">
+                        Generovať LEN cenovú ponuku (Strana 3)
+                    </label>
                 </div>
             </div>
             <div class="modal-footer">
@@ -623,69 +1277,85 @@
             </div>
         </div>
     </div>
-
-
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const $ = (s) => document.querySelector(s);
             const offerSection = $('#offer-section');
             const summarySection = $('#summary-section');
             const infoModal = $('#info-modal');
-            
+
+            // Data o cenách balíčků (V EUR) - PONECHÁNY VAŠE HODNOTY
             const packagePricesYearly = {
                 'package_mini': 839,
                 'package_basic': 1269,
                 'package_professional': 1689,
-                'package_premium': 0,
+                'package_premium': 0, // Individuálny balíček
             };
 
+            /** * Formátuje číslo ako měnu. (UPRAVENO PRO EUR)
+             */
             const formatCurrency = (value, currencySymbol = '€') => {
+                // Přidána podpora pro 2 desetinná místa u necelých čísel
                 const options = {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2,
+                    minimumFractionDigits: (value % 1 === 0) ? 0 : 2,
+                    maximumFractionDigits: (value % 1 === 0) ? 0 : 2,
                 };
-                if (value % 1 === 0) {
-                    options.minimumFractionDigits = 0;
-                    options.maximumFractionDigits = 0;
-                }
+
                 const formatted = new Intl.NumberFormat('sk-SK', options).format(value);
-                return `${formatted} ${currencySymbol}`;
+                return currencySymbol === 'none' ? formatted : `${formatted} ${currencySymbol}`;
             };
 
+            /** * Vypočítá cenu hlavního balíčku dle zvolené frekvence platby.
+             */
             function calculatePackagePrice(packageId, paymentTerm) {
-                const checkbox = document.getElementById(packageId);
-                if (!checkbox) return 0;
-                const yearlyPrice = parseFloat(checkbox.dataset.priceYearly) || 0;
-                if (yearlyPrice === 0) return 0;
-
+                const yearlyPrice = packagePricesYearly[packageId] || 0;
+                if (yearlyPrice === 0) return 0; // Pro individuální balíček
+                
+                // Používáme pevný kurz pro měsíční přepočet (10x měsíční = roční)
                 const baseMonthlyPrice = yearlyPrice / 10;
-
+                
                 switch (paymentTerm) {
-                    case 'monthly': return baseMonthlyPrice;
-                    case 'quarterly': return baseMonthlyPrice * 3;
-                    case 'half-yearly': return baseMonthlyPrice * 6;
-                    case 'yearly': default: return yearlyPrice;
+                    case 'monthly':
+                        return Math.round(baseMonthlyPrice * 100) / 100; // Zaokrouhlení na 2 desetinná místa
+                    case 'quarterly':
+                        return Math.round((baseMonthlyPrice * 3) * 100) / 100;
+                    case 'half-yearly':
+                        return Math.round((baseMonthlyPrice * 6) * 100) / 100;
+                    case 'yearly':
+                    default:
+                        return yearlyPrice;
                 }
             }
-            
+
+            /** * Vypočítá cenu balíčku správy Google Moje Firma dle zvolené frekvence platby.
+             */
             function calculateGmfManagePrice(packageId, paymentTerm) {
                 const checkbox = $(`#${packageId}`);
                 if (!checkbox) return 0;
-                
+
                 const monthlyPrice = parseFloat(checkbox.dataset.priceMonthly) || 0;
                 const yearlyPrice = parseFloat(checkbox.dataset.priceYearly) || 0;
-                
-                if (monthlyPrice === 0 && yearlyPrice === 0) return 0;
 
+                if (monthlyPrice === 0 && yearlyPrice === 0) return 0;
+                
+                // Měsíční cena je již v datech jako EUR
                 switch (paymentTerm) {
-                    case 'monthly': return monthlyPrice;
-                    case 'quarterly': return monthlyPrice * 3;
-                    case 'half-yearly': return monthlyPrice * 6;
-                    case 'yearly': default: return yearlyPrice;
+                    case 'monthly':
+                        return monthlyPrice;
+                    case 'quarterly':
+                        return Math.round((monthlyPrice * 3) * 100) / 100;
+                    case 'half-yearly':
+                        return Math.round((monthlyPrice * 6) * 100) / 100;
+                    case 'yearly':
+                    default:
+                        return yearlyPrice; // Roční cena je v data-price-yearly
                 }
             }
 
+            /** * Přepočítá všechny celkové ceny v rekapitulaci.
+             */
             function recalculateTotals() {
+                let finalTotal = 0;
                 let totalOriginal = 0;
                 let totalPackageSavings = 0;
                 let totalRecurringPrice = 0;
@@ -698,124 +1368,196 @@
                 const mainPaymentTerm = document.getElementById('package_payment_term_select').value;
                 const gmfManagePaymentTerm = document.getElementById('gmf_manage_payment_term_select').value;
 
+                // 1. Přepočet cen v tabulce hlavních balíčků
                 document.querySelectorAll('.table-price[data-price-yearly]').forEach(cell => {
-                    const packageId = cell.closest('.comparison-table').querySelector(`input[name="package"][data-price-yearly="${cell.dataset.priceYearly}"]`)?.id;
+                    const yearlyPrice = parseFloat(cell.dataset.priceYearly);
+                    const packageId = cell.closest('.comparison-table').querySelector(`[data-price-yearly="${yearlyPrice}"][name="package"]`)?.id;
+
+                    let newPrice;
                     if (packageId) {
-                        const newPrice = calculatePackagePrice(packageId, mainPaymentTerm);
-                        cell.textContent = newPrice > 0 ? formatCurrency(newPrice) : "Individuálne";
+                        newPrice = calculatePackagePrice(packageId, mainPaymentTerm);
+                    } else {
+                        newPrice = yearlyPrice; // Fallback? Might need adjustment based on logic
+                    }
+                    if (newPrice > 0) {
+                        cell.textContent = formatCurrency(newPrice);
+                    } else if (cell.dataset.priceYearly === "0") { // Check if it's the individual package
+                        cell.textContent = "Individuálne";
                     }
                 });
-                
+
+                // 2. Přepočet úspor v tabulce hlavních balíčků
                 document.querySelectorAll('.savings-amount[data-package-id]').forEach(cell => {
-                    if (mainPaymentTerm === 'yearly') {
-                        cell.textContent = formatCurrency(parseFloat(cell.dataset.savingsYearly));
-                    } else {
-                        cell.textContent = formatCurrency(parseFloat(cell.dataset.savingsBase));
+                    // Only update savings if it's not the placeholder ('—')
+                    if (cell.textContent !== '—') {
+                        // Úspory jsou již v datech jako EUR
+                        if (mainPaymentTerm === 'yearly') {
+                            const finalSavings = parseFloat(cell.dataset.savingsYearly);
+                            cell.textContent = formatCurrency(finalSavings);
+                        } else {
+                            const baseSavings = parseFloat(cell.dataset.savingsBase);
+                            cell.textContent = formatCurrency(baseSavings);
+                        }
                     }
                 });
 
+                // Přepočet úspor pro GMF
                 document.querySelectorAll('.comparison-table .savings-amount[data-gmf-savings-yearly]').forEach(cell => {
-                    if (gmfManagePaymentTerm === 'yearly') {
-                        cell.textContent = formatCurrency(parseFloat(cell.dataset.gmfSavingsYearly));
-                    } else {
-                        cell.textContent = formatCurrency(0);
+                    // Only update savings if it's not the placeholder ('—')
+                    if (cell.textContent !== '—') {
+                        // Úspory jsou již v datech jako EUR
+                        if (gmfManagePaymentTerm === 'yearly') {
+                            const savings = parseFloat(cell.dataset.gmfSavingsYearly);
+                            cell.textContent = formatCurrency(savings);
+                        } else {
+                            cell.textContent = formatCurrency(0);
+                        }
                     }
                 });
 
-                document.querySelectorAll('.table-price[data-management-price-yearly]').forEach(cell => {
-                    const checkbox = cell.closest('.comparison-table').querySelector(`[data-price-yearly="${cell.dataset.managementPriceYearly}"]`);
+                // 3. Přepočet cen v tabulce správy GMF
+                document.querySelectorAll('.table-price[data-management-price-monthly]').forEach(cell => {
+                    const yearlyPrice = parseFloat(cell.dataset.managementPriceYearly);
+                    const checkbox = cell.closest('.comparison-table').querySelector(`[data-price-yearly="${yearlyPrice}"][name="management_package"]`);
                     const packageId = checkbox?.id;
+
+                    let newPrice;
                     if (packageId) {
-                        const newPrice = calculateGmfManagePrice(packageId, gmfManagePaymentTerm);
-                        cell.textContent = newPrice > 0 ? formatCurrency(newPrice) : "individuálne";
+                        newPrice = calculateGmfManagePrice(packageId, gmfManagePaymentTerm);
+                    } else {
+                        // Find if this cell corresponds to the "individual" column in GMF management
+                        const index = Array.from(cell.parentNode.children).indexOf(cell);
+                        const header = cell.closest('.comparison-table').querySelector(`.table-header:nth-child(${index + 1})`);
+                        if (header && header.textContent.trim().toUpperCase() === 'PREMIUM') {
+                            newPrice = 0; // Individual
+                        } else {
+                            newPrice = yearlyPrice; // Fallback, adjust if needed
+                        }
+                    }
+
+                    if (newPrice > 0) {
+                        cell.textContent = formatCurrency(newPrice);
+                    } else if (newPrice === 0) { // Specifically handle 0 for individual
+                        cell.textContent = "individuálne";
                     }
                 });
 
+                // 4. Přepočet cen v rekapitulaci
                 if (!summarySection.classList.contains('hidden')) {
                     document.querySelectorAll('.summary-item').forEach(itemRow => {
                         const itemId = itemRow.dataset.id;
                         const quantity = parseInt(itemRow.querySelector('.summary-quantity').value) || 1;
-                        const discount = parseFloat(itemRow.querySelector('.summary-discount').value) || 0;
+                        const discount = parseFloat(itemRow.querySelector('.summary-discount').value) || 0; // Manuální sleva %
                         const discountInfoSpan = itemRow.querySelector('.discount-info');
 
-                        let basePrice = 0;
-                        if (itemId.startsWith('package_')) {
-                            basePrice = calculatePackagePrice(itemId, mainPaymentTerm);
-                        } else if (itemId.includes('_manage_')) {
-                            basePrice = calculateGmfManagePrice(itemId, gmfManagePaymentTerm);
-                        } else {
-                            basePrice = parseFloat(itemRow.dataset.price);
-                        }
+                        let originalUnitPice = parseFloat(itemRow.dataset.price);
+                        let effectiveBasePrice = originalUnitPice; // Cena *po* množstevní slevě, ale *před* manuální slevou
 
-                        if (!itemId.startsWith('package_') && !itemId.includes('_manage_')) {
+                        // Zohlednění platebních období pro paušální služby
+                        if (itemId.startsWith('package_')) {
+                            effectiveBasePrice = calculatePackagePrice(itemId, mainPaymentTerm);
+                            originalUnitPice = effectiveBasePrice; // U balíčků je původní cena rovna efektivní ceně (dle platby)
+                        } else if (itemId.includes('_manage_')) {
+                            effectiveBasePrice = calculateGmfManagePrice(itemId, gmfManagePaymentTerm);
+                            originalUnitPice = effectiveBasePrice; // Stejné jako u balíčků
+                        }
+                        // Zohlednění množstevní slevy pro NFC
+                        else if (!itemId.startsWith('package_') && !itemId.includes('_manage_')) {
                             const tierPrice = itemRow.dataset.priceTier ? parseFloat(itemRow.dataset.priceTier) : null;
                             if (tierPrice !== null && quantity >= 5) {
-                                const originalPricePerUnit = parseFloat(itemRow.dataset.price);
-                                basePrice = tierPrice;
-                                discountInfoSpan.innerHTML = `(Množstevná zľava: ${formatCurrency(originalPricePerUnit, 'none')} € → ${formatCurrency(tierPrice, 'none')} €/ks)`;
+                                effectiveBasePrice = tierPrice; // Efektivní cena je cena po množstevní slevě
+                                discountInfoSpan.innerHTML = `(Množstevná zľava: ${formatCurrency(originalUnitPice, 'none')} € → ${formatCurrency(effectiveBasePrice, 'none')} €/ks)`;
                             } else {
+                                // effectiveBasePrice je již originalUnitPice
                                 discountInfoSpan.innerHTML = '';
                             }
                         }
-                        
-                        const priceBeforeDiscount = basePrice * quantity;
-                        const discountedLineTotal = priceBeforeDiscount * (1 - (discount / 100));
 
+                        const priceBeforeManualDiscount = effectiveBasePrice * quantity; // Cena celkem po množstevní slevě
+                        const priceBeforeAllDiscounts = originalUnitPice * quantity; // Absolutní původní cena celkem
+                        const discountedLineTotal = priceBeforeManualDiscount * (1 - (discount / 100)); // Finální cena po všech slevách
+
+                        // Zobrazení původní a diskontované ceny
+                        const originalPriceSpan = itemRow.querySelector('.price-original');
+
+                        // Zobrazí původní cenu, pokud se liší od finální ceny
+                        if (Math.round(discountedLineTotal * 100) !== Math.round(priceBeforeAllDiscounts * 100)) {
+                            originalPriceSpan.textContent = formatCurrency(priceBeforeAllDiscounts);
+                            originalPriceSpan.style.display = 'block';
+                        } else {
+                            originalPriceSpan.textContent = '';
+                            originalPriceSpan.style.display = 'none';
+                        }
                         itemRow.querySelector('.price-discounted').textContent = formatCurrency(discountedLineTotal);
 
+                        // Rozdělení do kategorií plateb
                         const paymentType = itemRow.querySelector('.summary-item-payment-type')?.textContent || '';
                         if (itemRow.closest('#summary-recurring-list')) {
-                            if (paymentType.includes('Polročná')) totalHalfYearlyPrice += discountedLineTotal;
-                            else if (paymentType.includes('Ročná')) totalYearlyPrice += discountedLineTotal;
-                            else if (paymentType.includes('Štvrťročná')) totalQuarterlyPrice += discountedLineTotal;
-                            else if (paymentType.includes('Mesačná')) totalMonthlyPrice += discountedLineTotal;
+                            // POZOR: Ponecháno české názvosloví v logice, ale slovenské názvy termínů pro kontrolu
+                            if (paymentType.includes('Polročná')) {
+                                totalHalfYearlyPrice += discountedLineTotal;
+                            } else if (paymentType.includes('Ročná')) {
+                                totalYearlyPrice += discountedLineTotal;
+                            } else if (paymentType.includes('Kvartálna')) {
+                                totalQuarterlyPrice += discountedLineTotal;
+                            } else if (paymentType.includes('Mesačná')) {
+                                totalMonthlyPrice += discountedLineTotal;
+                            }
                         } else if (itemRow.closest('#summary-onetime-list')) {
                             totalOnetimePrice += discountedLineTotal;
                         }
-                        
-                        totalOriginal += priceBeforeDiscount;
+
+                        totalOriginal += priceBeforeAllDiscounts; // Součet absolutně původních cen
+                        finalTotal += discountedLineTotal; // Součet finálních cen
                     });
-                    
+
                     totalRecurringPrice = totalYearlyPrice + totalQuarterlyPrice + totalHalfYearlyPrice + totalMonthlyPrice;
-                    const subtotalBezDPH = totalRecurringPrice + totalOnetimePrice;
-                    const finalTotalSDPH = subtotalBezDPH * 1.23;
-                    
+
+                    // Přidání úspor z balíčků
                     const selectedMainPackage = document.querySelector('input[type="checkbox"][name="package"]:checked');
                     if (selectedMainPackage) {
-                        const savingsCell = document.querySelector(`.savings-amount[data-package-id="${selectedMainPackage.id}"]`);
-                        if (savingsCell) {
+                        const packageId = selectedMainPackage.id;
+                        const savingsCell = document.querySelector(`.savings-amount[data-package-id="${packageId}"]`);
+                        if (savingsCell && savingsCell.textContent !== '—') { // Check it's not the placeholder ('—')
                             const savingsAttribute = mainPaymentTerm === 'yearly' ? 'savingsYearly' : 'savingsBase';
                             const savingsValue = parseFloat(savingsCell.dataset[savingsAttribute]);
-                            if (!isNaN(savingsValue)) totalPackageSavings += savingsValue;
+                            if (!isNaN(savingsValue)) {
+                                totalPackageSavings += savingsValue;
+                            }
                         }
                     }
-                    
                     const selectedGmfManage = document.querySelector('input[type="checkbox"][name="management_package"]:checked');
-                    if (selectedGmfManage && gmfManagePaymentTerm === 'yearly') {
+                    if (selectedGmfManage) {
                         const gmfSavingsCell = document.querySelector(`.savings-amount[data-gmf-savings-yearly][data-package-id="${selectedGmfManage.id}"]`);
-                        if (gmfSavingsCell) {
+                        // Only add savings if yearly payment is selected and it's not the placeholder
+                        if (gmfManagePaymentTerm === 'yearly' && gmfSavingsCell && gmfSavingsCell.textContent !== '—') {
                             const savingsValue = parseFloat(gmfSavingsCell.dataset.gmfSavingsYearly);
-                            if (!isNaN(savingsValue)) totalPackageSavings += savingsValue;
+                            if (!isNaN(savingsValue)) {
+                                totalPackageSavings += savingsValue;
+                            }
                         }
                     }
 
-                    $('#total-discount-amount').textContent = formatCurrency(totalOriginal - subtotalBezDPH + totalPackageSavings);
+                    // Aktualizace finálních součtů
+                    // Celková sleva = (Součet původních cen + Úspory z balíčků) - Finální cena
+                    $('#total-discount-amount').textContent = formatCurrency(totalOriginal + totalPackageSavings - finalTotal);
                     $('#total-recurring-price').textContent = formatCurrency(totalRecurringPrice);
                     $('#total-onetime-price').textContent = formatCurrency(totalOnetimePrice);
-                    $('#total-yearly-price').textContent = formatCurrency(totalYearlyPrice);
-                    $('#total-quarterly-price').textContent = formatCurrency(totalQuarterlyPrice);
-                    $('#total-half-yearly-price').textContent = formatCurrency(totalHalfYearlyPrice);
-                    $('#total-monthly-price').textContent = formatCurrency(totalMonthlyPrice);
-                    $('#total-subtotal-price').textContent = formatCurrency(subtotalBezDPH);
-                    $('#final-total-price').textContent = formatCurrency(finalTotalSDPH);
+
+                    const subtotal = totalRecurringPrice + totalOnetimePrice;
+                    // Finální cena je nyní mezisoučet (bez DPH)
+                    $('#final-total-price-display').textContent = formatCurrency(subtotal);
                 }
             }
 
+            /** * Aktualizuje sekci rekapitulace na základě vybraných položek.
+             */
             function updateSummary() {
                 const allChecked = offerSection.querySelectorAll('input[type="checkbox"]:checked');
                 const recurringList = $('#summary-recurring-list');
                 const onetimeList = $('#summary-onetime-list');
-                
+
+                // Uchování hodnot zadaných uživatelem (počet, sleva)
                 const preservedValues = new Map();
                 document.querySelectorAll('.summary-item').forEach(item => {
                     preservedValues.set(item.dataset.id, {
@@ -829,21 +1571,23 @@
 
                 if (allChecked.length === 0) {
                     summarySection.classList.add('hidden');
-                    recalculateTotals();
+                    // Ensure totals are reset when no items are selected
+                    $('#total-discount-amount').textContent = formatCurrency(0);
+                    $('#total-recurring-price').textContent = formatCurrency(0);
+                    $('#total-onetime-price').textContent = formatCurrency(0);
+                    $('#final-total-price-display').textContent = formatCurrency(0);
                     return;
                 }
-
                 summarySection.classList.remove('hidden');
-                const recurringItems = [], onetimeItems = [];
 
+                const recurringItems = [],
+                    onetimeItems = [];
+
+                // Rozdělení položek na paušální a jednorázové
                 allChecked.forEach(checkbox => {
-                    let itemName = checkbox.dataset.name;
-                    if (checkbox.name === 'package' || checkbox.name === 'management_package') {
-                        itemName += ' (Ročná služba)';
-                    }
                     let item = {
                         id: checkbox.id,
-                        name: itemName,
+                        name: checkbox.dataset.name,
                         price: parseFloat(checkbox.dataset.price),
                         priceTier: checkbox.dataset.priceTier || null,
                         paymentType: null,
@@ -851,235 +1595,1099 @@
                         yearlyPrice: checkbox.dataset.priceYearly || null,
                     };
 
+                    // Don't add description for NFC items in summary
+                    // if (checkbox.name === 'package' || checkbox.name === 'management_package') {
+                    //     item.name += ' (Roční služba)';
+                    // }
+
                     if (checkbox.name === 'package') {
-                        const term = document.getElementById('package_payment_term_select').value;
-                        if (term === 'yearly') item.paymentType = 'Ročná';
-                        else if (term === 'monthly') item.paymentType = 'Mesačná';
-                        else if (term === 'quarterly') item.paymentType = 'Štvrťročná';
-                        else if (term === 'half-yearly') item.paymentType = 'Polročná';
+                        const mainPaymentTerm = document.getElementById('package_payment_term_select').value;
+                        switch (mainPaymentTerm) {
+                            case 'yearly':
+                                item.paymentType = 'Ročná';
+                                break;
+                            case 'monthly':
+                                item.paymentType = 'Mesačná';
+                                break;
+                            case 'quarterly':
+                                item.paymentType = 'Kvartálna';
+                                break;
+                            case 'half-yearly':
+                                item.paymentType = 'Polročná';
+                                break;
+                        }
                     } else if (checkbox.name === 'management_package') {
-                        const term = document.getElementById('gmf_manage_payment_term_select').value;
-                         if (term === 'yearly') item.paymentType = 'Ročná';
-                        else if (term === 'monthly') item.paymentType = 'Mesačná';
-                        else if (term === 'quarterly') item.paymentType = 'Štvrťročná';
-                        else if (term === 'half-yearly') item.paymentType = 'Polročná';
+                        const gmfManagePaymentTerm = document.getElementById('gmf_manage_payment_term_select').value;
+                        switch (gmfManagePaymentTerm) {
+                            case 'yearly':
+                                item.paymentType = 'Ročná';
+                                break;
+                            case 'monthly':
+                                item.paymentType = 'Mesačná';
+                                break;
+                            case 'quarterly':
+                                item.paymentType = 'Kvartálna';
+                                break;
+                            case 'half-yearly':
+                                item.paymentType = 'Polročná';
+                                break;
+                        }
                     }
-                    
-                    if (item.paymentType) recurringItems.push(item);
-                    else onetimeItems.push(item);
+
+                    if (item.paymentType) {
+                        recurringItems.push(item);
+                    } else {
+                        onetimeItems.push(item);
+                    }
                 });
 
+                // Vykreslení seznamů
                 const renderList = (items, container) => {
                     items.forEach(item => {
-                        const values = preservedValues.get(item.id) || { quantity: 1, discount: 0 };
+                        const values = preservedValues.get(item.id) || {
+                            quantity: 1,
+                            discount: 0
+                        };
+                        const priceTierAttr = item.priceTier ? `data-price-tier="${item.priceTier}"` : '';
+                        const monthlyPriceAttr = item.monthlyPrice ? `data-price-monthly="${item.monthlyPrice}"` : '';
+                        const yearlyPriceAttr = item.yearlyPrice ? `data-price-yearly="${item.yearlyPrice}"` : '';
+                        const paymentTypeSpan = item.paymentType ? `<span class="summary-item-payment-type">${item.paymentType} platba</span>` : '';
+                        // Disable quantity input for packages
+                        const quantityInputDisabled = (item.id.startsWith('package_') || item.id.includes('_manage_') || item.id.startsWith('gsv_') || item.id.startsWith('gsva_')) ? 'disabled' : '';
+                        const quantityValue = quantityInputDisabled ? 1 : values.quantity; // Force quantity to 1 if disabled
+
                         const itemHtml = `
-                            <div class="summary-item" data-id="${item.id}" data-price="${item.price}" ${item.priceTier ? `data-price-tier="${item.priceTier}"` : ''} ${item.monthlyPrice ? `data-price-monthly="${item.monthlyPrice}"` : ''} ${item.yearlyPrice ? `data-price-yearly="${item.yearlyPrice}"` : ''}>
-                                <button class="remove-summary-item" title="Odobrať položku">&times;</button>
-                                <div class="summary-item-name">${item.name}<span class="discount-info"></span></div>
-                                <div class="summary-item-controls">
-                                    ${item.paymentType ? `<span class="summary-item-payment-type">${item.paymentType} platba</span>` : ''}
-                                    <label>Počet:</label>
-                                    <input type="number" class="summary-quantity" value="${values.quantity}" min="1">
-                                </div>
-                                <div class="summary-item-controls">
-                                    <label>Zľava:</label>
-                                    <input type="number" class="summary-discount" value="${values.discount}" min="0" max="100"> %
-                                </div>
-                                <div class="summary-item-price"><span class="price-discounted"></span></div>
-                            </div>`;
+                    <div class="summary-item" data-id="${item.id}" data-price="${item.price}" ${priceTierAttr} ${monthlyPriceAttr} ${yearlyPriceAttr}>
+                        <button class="remove-summary-item" title="Odobrať položku">&times;</button>
+                        <div class="summary-item-name">${item.name}<span class="discount-info"></span></div>
+                        <div class="summary-item-controls">
+                            ${paymentTypeSpan}
+                            <label>Počet:</label>
+                             <input type="number" class="summary-quantity" value="${quantityValue}" min="1" ${quantityInputDisabled}>
+                        </div>
+                        <div class="summary-item-controls">
+                            <label>Zľava:</label>
+                            <input type="number" class="summary-discount" value="${values.discount}" min="0" max="100"> %
+                        </div>
+                        <div class="summary-item-price">
+                            <!-- Přidán span pro původní cenu -->
+                            <span class="price-original" style="display: none; font-size: 0.9em; text-decoration: line-through;"></span>
+                            <span class="price-discounted"></span>
+                        </div>
+                    </div>
+                `;
                         container.innerHTML += itemHtml;
                     });
                 };
 
                 renderList(recurringItems, recurringList);
                 renderList(onetimeItems, onetimeList);
-                
+
                 $('#summary-recurring-wrapper').classList.toggle('hidden', recurringItems.length === 0);
                 $('#summary-onetime-wrapper').classList.toggle('hidden', onetimeItems.length === 0);
 
                 recalculateTotals();
             }
-
+            // --- Event Listenery ---
+            // Změny ve výběru služeb
             offerSection.addEventListener('change', (e) => {
                 const target = e.target;
                 if (target.matches('input[type="checkbox"]')) {
-                    if (['management_package', 'package', 'gsv_package', 'gsva_package'].includes(target.name)) {
-                        document.querySelectorAll(`input[name="${target.name}"]`).forEach(cb => { if (cb !== target) cb.checked = false; });
+                    // Zajištění exkluzivního výběru pro skupiny balíčků
+                    if (target.name === 'management_package' || target.name === 'package' || target.name === 'gsv_package' || target.name === 'gsva_package' || target.name === 'gsv_car_option') {
+                        document.querySelectorAll(`input[name="${target.name}"]`).forEach(checkbox => {
+                            if (checkbox !== target) {
+                                checkbox.checked = false;
+                            }
+                        });
+                    }
+                    // Pokud se vybere "Optimalizace vč. roční správy", odškrtni "Optimalizace bez roční správy"
+                    if (target.id === 'gmf_optimize_full' && target.checked) {
+                        const otherCheckbox = document.getElementById('gmf_optimize_one');
+                        if (otherCheckbox) otherCheckbox.checked = false;
+                    }
+                    // Pokud se vybere "Optimalizace bez roční správy", odškrtni "Optimalizace vč. roční správy"
+                    if (target.id === 'gmf_optimize_one' && target.checked) {
+                        const otherCheckbox = document.getElementById('gmf_optimize_full');
+                        if (otherCheckbox) otherCheckbox.checked = false;
                     }
                     updateSummary();
-                } else if (target.matches('.payment-select')) {
+                }
+                if (target.matches('.payment-select')) {
                     updateSummary();
                 }
             });
 
-            summarySection.addEventListener('input', e => {
-                if (e.target.matches('.summary-quantity, .summary-discount')) recalculateTotals();
+            // Změny v rekapitulaci (počet, sleva)
+            summarySection.addEventListener('input', (e) => {
+                if (e.target.matches('.summary-quantity, .summary-discount')) {
+                    recalculateTotals();
+                }
             });
 
-            summarySection.addEventListener('click', e => {
+            // Odebrání položky z rekapitulace
+            summarySection.addEventListener('click', (e) => {
                 if (e.target.matches('.remove-summary-item')) {
                     const itemId = e.target.closest('.summary-item').dataset.id;
                     const checkbox = $(`#${itemId}`);
                     if (checkbox) {
                         checkbox.checked = false;
-                        checkbox.dispatchEvent(new Event('change', { bubbles: true }));
+                        // Spuštění 'change' eventu pro aktualizaci
+                        checkbox.dispatchEvent(new Event('change', {
+                            bubbles: true
+                        }));
+                        // Explicitně zavoláme updateSummary po odebrání,
+                        // protože samotný 'change' event na checkboxu, který už je false,
+                        // nemusí stačit k aktualizaci (např. pokud byl jediný zaškrtnutý).
+                        updateSummary();
                     }
                 }
             });
-            
-            async function generateAndDownloadPdf() {
-                const createBtn = $(`#generate-offer-pdf-btn`);
-                const originalButtonText = createBtn.innerHTML;
-                createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generujem...';
-                createBtn.disabled = true;
 
-                const logoUrl = 'https://iili.io/KnfRVlp.png';
-                const issueDate = new Date();
-                const validUntilDate = new Date();
-                validUntilDate.setDate(issueDate.getDate() + 7);
-
-                const pdfTemplate = `
-                <!DOCTYPE html><html lang="sk"><head><meta charset="UTF-8"><title>Cenová ponuka</title>
-                <style>
-                    body { font-family: 'Poppins', sans-serif; margin:0; padding:0; background-color:#ffffff; color:#3c4043; }
-                    .container { max-width:800px; margin:0 auto; background-color:#ffffff; padding:40px; }
-                    .header { display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #34a853; padding-bottom:20px; margin-bottom:30px; }
-                    .header-title h1 { color:#34a853; font-size:28px; margin:0; font-weight:700; border-bottom:none; }
-                    .header-logo img { max-width:150px; height:auto; }
-                    .section-block { display:flex; justify-content:space-between; margin-bottom:30px; font-size:14px; line-height:1.6; }
-                    .section-block h3 { color:#34a853; font-size:16px; margin-bottom:8px; font-weight:600; }
-                    .section-block p { margin:0; color:#555; }
-                    .item-table { width:100%; border-collapse:collapse; margin-top:20px; }
-                    .item-table th, .item-table td { text-align:left; padding:12px; border-bottom:1px solid #ebf4f5; font-size:13px; }
-                    .item-table thead th { background-color:#f1f3f4; color:#3c4043; font-weight:600; }
-                    .item-table .item-name { font-weight:600; color:#202124; }
-                    .total-summary { margin-top:30px; } .total-summary table { width:60%; margin-left:auto; border-collapse:collapse; }
-                    .total-summary td { padding:10px; font-size:14px; border-bottom:1px solid #ebf4f5; }
-                    .total-summary tr:last-child td { border-bottom:none; } .total-summary .label { color:#555; text-align:right; padding-right:20px; }
-                    .total-summary .value { font-weight:600; text-align:right; }
-                    .total-summary .total-row td { font-weight:700; font-size:16px; color:#34a853; border-top:2px solid #34a853; padding-top:15px; }
-                    .footer { margin-top:40px; padding-top:20px; border-top:2px solid #34a853; text-align:center; font-size:12px; color:#777; }
-                    .invoice-details p { margin:5px 0; font-size:14px; }
-                </style></head><body><div class="container" id="pdf-content">
-                    <div class="header">
-                        <div class="header-title"><h1>CENOVÁ PONUKA</h1></div>
-                        <div class="header-logo"><img src="${logoUrl}" alt="Logo firmy"></div>
-                    </div>
-                    <div class="invoice-details">
-                        <p><strong>Dátum vystavenia:</strong> ${issueDate.toLocaleDateString('sk-SK')}</p>
-                        <p><strong>Platnosť ponuky do:</strong> ${validUntilDate.toLocaleDateString('sk-SK')}</p>
-                    </div>
-                    <div class="section-block">
-                        <div class="dodavatel">
-                            <h3>Dodávateľ:</h3>
-                            <p><strong>STREEWVIEW CZECH s.r.o.</strong><br>Na Folimance 2155/15<br>Praha - Vinohrady, 120 00<br>IČ: 08619671<br>DIČ: CZ08619671</p>
-                        </div>
-                        <div class="zakaznik">
-                            <h3>Zákazník:</h3>
-                            <p><strong>${$('#company-name').value || 'neuvedené'}</strong><br>
-                            IČO: ${$('#company-id').value || 'neuvedené'}<br>
-                            Kontaktná osoba: ${$('#contact-person').value || 'neuvedené'}<br>
-                            Email: ${$('#email').value || 'neuvedené'}<br>
-                            Telefón: ${$('#phone').value || 'neuvedené'}</p>
-                        </div>
-                    </div>
-                    <table class="item-table"><thead><tr><th>Popis</th><th>Typ platby</th><th>Počet</th><th>Cena/jedn.</th><th>Zľava</th><th>Spolu</th></tr></thead>
-                    <tbody id="invoice-items">${generatePdfItemsHtml()}</tbody></table>
-                    <div class="total-summary">
-                        <table><tbody id="pdf-totals"></tbody></table>
-                    </div>
-                    <div class="footer"><p>Ďakujeme za váš záujem o naše služby. V prípade otázok nás neváhajte kontaktovať.</p></div>
-                </div></body></html>`;
-
-                const pdfContainer = document.createElement('div');
-                pdfContainer.style.cssText = 'position:absolute; left:-9999px; width:800px;';
-                pdfContainer.innerHTML = pdfTemplate;
-                document.body.appendChild(pdfContainer);
-                
-                calculateAndRenderPdfTotals(pdfContainer);
-
-                try {
-                    const { jsPDF } = window.jspdf;
-                    const pdf = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
-                    const canvas = await html2canvas(pdfContainer.querySelector('#pdf-content'), { scale:2, useCORS:true, allowTaint:true, width:800 });
-                    const imgData = canvas.toDataURL('image/png');
-                    const pdfWidth = pdf.internal.pageSize.getWidth();
-                    const imgHeight = canvas.height * pdfWidth / canvas.width;
-                    let heightLeft = imgHeight, position = 0;
-                    const pdfHeight = pdf.internal.pageSize.getHeight();
-                    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                    heightLeft -= pdfHeight;
-                    while (heightLeft > 0) {
-                        position = heightLeft - imgHeight;
-                        pdf.addPage();
-                        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, imgHeight);
-                        heightLeft -= pdfHeight;
-                    }
-                    const companyName = $('#company-name').value || 'Názov Spoločnosti';
-                    const fileName = `Cenová ponuka služby Google - ${companyName}.pdf`;
-                    pdf.save(fileName);
-                } catch (error) {
-                    console.error('Chyba pri generovaní PDF:', error);
-                    alert('Pri generovaní PDF došlo k chybe. Skúste to prosím znova.');
-                } finally {
-                    document.body.removeChild(pdfContainer);
-                    createBtn.innerHTML = originalButtonText;
-                    createBtn.disabled = false;
+            // --- Helper funkce pro zobrazení vlastního alertu ---
+            function showCustomAlert(message) {
+                // Remove existing alert if any
+                const existingAlert = document.querySelector('.custom-alert-messagebox');
+                if (existingAlert) {
+                    existingAlert.remove();
                 }
+
+                const messageBox = document.createElement('div');
+                messageBox.className = 'custom-alert-messagebox'; // Add class for easier removal
+                messageBox.style.cssText = `position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #fff; border: 2px solid var(--danger-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 20px 30px; z-index: 1001; text-align: center; max-width: 300px;`;
+                messageBox.innerHTML = `<p style="margin: 0; font-size: 1.1em; font-weight: 600;">${message}</p><button style="margin-top: 15px; padding: 8px 16px; border: none; background-color: var(--primary-color); color: white; border-radius: 5px; cursor: pointer;" onclick="this.parentNode.remove()">OK</button>`;
+                document.body.appendChild(messageBox);
+                // Automaticky odstraní hlášku po 4 sekundách
+                // setTimeout(() => {
+                //     if (document.body.contains(messageBox)) {
+                //         document.body.removeChild(messageBox);
+                //     }
+                // }, 4000);
             }
 
+            // ===================================================================
+            // --- ZAČÁTEK NOVÉ SESTAVOVACÍ LOGIKY PRO PDF ---
+            // ===================================================================
+            // --- Databáze popisů a URL ---
+            const logoUrl = 'https://iili.io/KnfRVlp.png'; // Nahraďte skutečnou URL loga
+            const logoGMB = 'https://iili.io/Kr0L89p.png'; // Nahraďte skutečnou URL loga GMB
+            const logoSV = 'https://iili.io/Kr0LSAN.png'; // Nahraďte skutečnou URL loga SV
+            const logoAds = 'https://iili.io/Kr0LUNI.png'; // Nahraďte skutečnou URL loga Ads
+
+            const serviceDescriptions = {
+                'package_mini': 'Balíček MINI je náš základný program pre správu vášho firemného profilu. Zahŕňa optimalizáciu profilu, mesačné pridávanie 1 novinky a 5 produktov. Ďalej obsahuje vytvorenie Google Street View prehliadky (2-10 krokov) a 3 klasické fotografie.',
+                'package_basic': 'Balíček BASIC rozširuje vašu online prítomnosť. Zahŕňa kompletnú optimalizáciu, 4 novinky a 20 produktov mesačne. Súčasťou je rozšírená Google Street View prehliadka (11-30 krokov), 10 klasických fotografií, 6 ks 360° fotografií z dronu (GSV AIR) a 2 krátke videá.',
+                'package_professional': 'Balíček PROFESSIONAL je naše komplexné riešenie. Získate plnú optimalizáciu a správu profilu s 6 novinkami a 40 produktmi mesačne. Balíček obsahuje rozsiahlu Google Street View prehliadku (31-60 krokov), 20 klasických fotografií, 12 ks 360° fotografií z dronu (GSV AIR) a 6 krátkych videí. Toto riešenie maximalizuje vašu viditeľnosť a interakciu so zákazníkmi.',
+                'package_premium': 'Balíček INDIVIDUAL je plne prispôsobený vašim unikátnym potrebám. Rozsah služieb, frekvenciu príspevkov a tvorbu virtuálnych prehliadok zostavíme na mieru po osobnej konzultácii.',
+
+                'gmf_optimize_one': 'Jednorazová optimalizácia bez ročnej správy. Profesionálne nastavíme váš firemný profil na Google, doplníme kľúčové informácie, kategórie, fotografie a zaistíme, aby mal váš profil čo najlepšiu štartovú pozíciu pre prilákanie zákazníkov.',
+                'gmf_optimize_full': 'Kompletná optimalizácia firemného profilu pri dojednaní ročnej správy. Táto služba je ideálna v kombinácii s niektorým z našich balíčkov správy, kedy získate profesionálne nastavenie za zvýhodnenú cenu.',
+                'gmf_update': 'Jednorazová úprava firemného profilu. Potrebujete aktualizovať otváraciu dobu, zmeniť adresu, pridať nové fotografie alebo upraviť popis služieb? Postaráme sa o rýchlu a profesionálnu aktualizáciu vašich údajov.',
+
+                'gmf_manage_mini': 'Správa profilu MINI (Ročná služba). Zaistíme pravidelnú aktualizáciu vášho profilu, vrátane 1 novinky a 5 produktov mesačne. Udržujeme váš profil aktívny a atraktívny pre zákazníkov.',
+                'gmf_manage_basic': 'Správa profilu BASIC (Ročná služba). Zahŕňa 4 novinky a 20 produktov mesačne. Táto služba výrazne zvyšuje vašu interakciu s publikom a zlepšuje pozíciu vo vyhľadávaní.',
+                'gmf_manage_pro': 'Správa profilu PROFESSIONAL (Ročná služba). Náš najvyšší variant správy so 6 novinkami a 40 produktmi mesačne. Ideálne pre firmy, ktoré chcú dominovať lokálnemu vyhľadávaniu.',
+                'gmf_manage_premium': 'Správa profilu PREMIUM (Ročná služba). Individuálny plán správy s rozsahom služieb prispôsobeným na mieru vašim cieľom.',
+
+                'gsv_table_mini': 'Google Street View - MINI. Vytvorenie základnej virtuálnej prehliadky v rozsahu 2-10 krokov (sférických bodov) a dodanie 3 klasických fotografií. Ideálne pre malé prevádzky a kaviarne.',
+                'gsv_table_basic': 'Google Street View - BASIC. Rozšírená virtuálna prehliadka (11-30 krokov) s 10 klasickými fotografiami. Perfektné pre reštaurácie, obchody a menšie hotely.',
+                'gsv_table_pro': 'Google Street View - PROFESSIONAL. Veľká virtuálna prehliadka (31-60 krokov) doplnená o 20 profesionálnych fotografií. Určeno pre rozsiahle prevádzky, hotely, showroomy a firemné sídla.',
+                'gsv_table-premium': 'Google Street View - PREMIUM. Plne individuálny projekt virtuálnej prehliadky s neobmedzeným počtom bodov a fotografií, prispôsobený špecifickým požiadavkám klienta.',
+
+                'gsva_table_mini': 'Google Street View AIR - MINI. Základný balíček leteckej fotografie a 360° snímok. Získate 3-5 klasických leteckých fotografií a 2 sférické 360° fotografie z dronu.',
+                'gsva_table_basic': 'Google Street View AIR - BASIC. Pokročilý balíček (6-15 leteckých fotografií, 6 ks 360° foto) a k tomu 2 krátke videá (do 30 sek) zostrihané pre sociálne siete.',
+                'gsva_table_pro': 'Google Street View AIR - PROFESSIONAL. Komplexná letecká produkcia (16-25 foto, 12 ks 360° foto) a 6 krátkych videí (do 30 sek). Maximalizujte dojem z vašej lokácie.',
+                'gsva_table-premium': 'Google Street View AIR - PREMIUM. Individuálna letecká produkcia podľa vašich požiadaviek.',
+
+                'gsv_car_with_gsv': 'GSV CAR / PRILBA (vrátane GSV). Špeciálne snímanie súkromných areálov, parkovísk alebo ciest pomocou technológie vozidla Google Street View alebo 360° kamery na prilbe. Cena je platná pri súčasnom objednaní klasickej GSV prehliadky interiéru.',
+                'gsv_car_without_gsv': 'GSV CAR / PRILBA (bez GSV). Samostatné snímanie areálov, ciest alebo exteriérov pomocou technológie vozidla Google Street View alebo 360° kamery na prilbe.',
+
+                'nfc_karta': 'NFC Karta / vizitka. Moderná vizitka, ktorá po priložení k telefónu okamžite otvorí váš firemný profil, kontakty alebo web. Ide o efektívny nástroj pre networking a zdieľanie recenzií.',
+                'nfc_stojanek': 'NFC Stojan na stôl. Ideálne pre recepcie, reštaurácie alebo pokladne. Zákazník jednoduchým priložením telefónu môže zanechať recenziu, pozrieť si menu alebo sa pripojiť na Wi-Fi.',
+                'nfc_stojanek_maly': 'NFC Stojan Malý. Kompaktná verzia stojana pre miesta s obmedzeným priestorom, s rovnakou funkčnosťou.',
+                'nfc_plaketa_hranata': 'NFC Plaketa hranatá. Elegantná plaketa na stenu alebo dvere (napr. pri vstupe), ktorá vyzýva k interakcii s vaším Google profilom.',
+                'nfc_plaketa_menu': 'NFC Plaketa menu. Špeciálna plaketa určená pre reštaurácie, ktorá po priložení telefónu zobrazí zákazníkovi vaše digitálne menu.',
+                'nfc_plaketa_kulata': 'NFC Plaketa okrúhla. Dizajnová okrúhla plaketa na stenu či stôl s NFC čipom.',
+                'nfc_samolepka_bez': 'Google nálepka bez NFC. Klasická nálepka "Nájdete nás na Google" alebo "Recenzujte nás na Google" (bez čipu).'
+            };
+
+            /**
+             * Načte informace o klientovi z modálního okna.
+             */
+            function getClientInfo() {
+                return {
+                    companyName: $('#company-name').value || 'Vás',
+                    contactPerson: $('#contact-person').value || 'neuvedená',
+                    email: $('#email').value || 'neuvedený',
+                    phone: $('#phone').value || 'neuvedený',
+                    // IČO je ponecháno s původním placeholderem (Napr. 12345678)
+                    ico: $('#company-id').value || 'neuvedené' 
+                };
+            }
+
+            /**
+             * Načte všechny vybrané položky z rekapitulace.
+             */
+            function getCheckedItemsData() {
+                const items = [];
+                document.querySelectorAll('#summary-section .summary-item').forEach(itemRow => {
+                    const name = itemRow.querySelector('.summary-item-name').firstChild.textContent.trim();
+                    const quantity = parseInt(itemRow.querySelector('.summary-quantity').value);
+                    const paymentType = itemRow.querySelector('.summary-item-payment-type')?.textContent.replace(' platba', '') || 'Jednorazová';
+
+                    items.push({
+                        id: itemRow.dataset.id, // Důležité: přidáno ID
+                        name: name,
+                        quantity: quantity,
+                        paymentType: paymentType
+                    });
+                });
+                return items;
+            }
+
+            /**
+             * Vytvoří HTML pro Úvodní list (Strana 1).
+             * @param {Object} clientInfo
+             * @param {string} logoUrl
+             * @param {string} footerText Text pro patičku (např. 'Strana 1')
+             */
+            function createIntroPageHtml(clientInfo, logoUrl, footerText) {
+                // Použijeme třídu pdf-page-container
+                return `
+        <div class="pdf-page-container" id="pdf-page-content">
+            <div style="min-height: 1050px;"> <!-- Obsah stránky (kromě patičky) -->
+                <div class="header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #34a853; padding-bottom: 20px; margin-bottom: 30px;">
+                    <div class="header-title">
+                        <h1 style="color: #34a853; font-size: 28px; margin: 0; font-weight: 700;">Vážený klient,</h1>
+                    </div>
+                    <div class="header-logo"><img src="${logoUrl}" alt="Logo firmy" style="max-width: 120px; height: auto;"></div>
+                </div>
+
+                <h2 style="font-size: 20px; font-weight: 600; color: #202124; margin-top: 40px;">
+                    Návrh riešenia pre ${clientInfo.companyName}
+                </h2>
+
+                <p style="font-size: 13px; line-height: 1.5; color: #555;">
+                    Ďakujeme Vám za záujem o naše služby. V spoločnosti VIEW sme experti na ekosystém Google. Našim zákazníkom poskytujeme komplexné služby, ktoré zaistia ich viditeľnosť a privedú nových klientov.
+                </p>
+
+                <div class="pillars-container">
+                    <div class="pillar-item">
+                        <p><strong class="title">Google Moja Firma a Recenzie</strong>
+                            <strong>Zaistíme kompletnú správu vášho profilu</strong> – od založenia, cez optimalizáciu až po strategický návrh získavania Google recenzií, ktoré budujú dôveru zákazníkov.</p>
+                    </div>
+                    <div class="pillar-item">
+                        <p><strong class="title">Virtuálne prehliadky Google Street View</strong>
+                            Tvoríme profesionálne <strong>360° virtuálne prehliadky</strong>, ktoré vtiahnu zákazníkov priamo do vášho priestoru a výrazne zlepšia vašu prezentáciu.</p>
+                    </div>
+                    <div class="pillar-item">
+                        <p><strong class="title">Reklamné kampane Google Ads (PPC)</strong>
+                            Plánujeme, spúšťame a optimalizujeme <strong>platené reklamné kampane</strong>, ktoré efektívne oslovia vašich potenciálnych zákazníkov.</p>
+                    </div>
+                    <div class="pillar-item">
+                        <p><strong class="title">Manažérske rozhranie VIEW</strong>
+                            Poskytujeme prístup do unikátnej platformy, ktorá rozširuje nástroje Google a umožňuje <strong>centralizovanú hromadnú správu</strong> pre siete pobočiek.</p>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 16px; font-weight: 600; color: #202124; margin-top: 20px;">S kým môžete spolupracovať?</h3>
+                <p style="font-size: 13px; line-height: 1.5; color: #555; margin-top: 5px;">
+                    Naša cesta vo VIEW začala v roku <strong>2014</strong> získaním prestížnej <strong>certifikácie Google Street View</strong>. Tento krok položil základy našej spoločnosti a rýchlo nás posunul medzi <strong>lídrov v oblasti virtuálnych prehliadok</strong> v Českej republike a na Slovensku.
+                </p>
+                <p style="font-size: 13px; line-height: 1.5; color: #555; margin-top: 10px;">
+                    Ako náš tím rástol, prirodzene sme rozširovali aj naše služby. Začali sme sa špecializovať na <strong>správu firemných profilov Google Moja Firma</strong>, kde klientom poskytujeme <strong>jednorazové optimalizácie</strong> aj <strong>kompletnú, pravidelnú správu</strong>.
+                </p>
+                <p style="font-size: 13px; line-height: 1.5; color: #555; margin-top: 10px;">
+                    Náš cieľ bol vždy jasný: poskytnúť <strong>kompletný balík služieb</strong> pre úspech na Google. Logickým krokom preto bolo rozšírenie portfólia o správu <strong>reklamných kampaní Google Ads</strong>. Vďaka tomu dnes môžeme našim klientom ponúknuť skutočne <strong>komplexné riešenie</strong> pre ich digitálny marketing.
+                </p>
+
+                <h3 style="font-size: 16px; font-weight: 600; color: #202124; margin-top: 20px;">Ako plynul čas</h3>
+                <div class="timeline-grid">
+
+                    <!-- ŘÁDEK 1 -->
+                    <div class="timeline-event">
+                        <div class="timeline-content">
+                            <div class="year">2014</div>
+                            <ul>
+                                <li>Získanie licencie Google Street View Trusted (Tomáš Gerber) na území CZ.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="timeline-event">
+                        <div class="timeline-content">
+                            <div class="year">2015</div>
+                            <ul>
+                                <li>Otvorenie trhu na Slovensku.</li>
+                                <li><strong>Realizácia 100 klientov.</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="timeline-event">
+                        <div class="timeline-content">
+                            <div class="year">2016</div>
+                            <ul>
+                                <li>Prvý obchodník.</li>
+                                <li><strong>Realizácia 300 klientov.</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="timeline-event">
+                        <div class="timeline-content">
+                            <div class="year">2017</div>
+                            <ul>
+                                <li>Prvé mapovanie ulíc (Google Street View).</li>
+                                <li>Naše prehliadky dosiahli <strong>50 mil. náhľadov.</strong></li>
+                                <li>Prvý technik v teréne.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="timeline-event">
+                        <div class="timeline-content">
+                            <div class="year">2018</div>
+                            <ul>
+                                <li>Prvé prehliadky mimo CZ a SK.</li>
+                                <li>Google Moja Firma a prvé riešenie požiadaviek.</li>
+                                <li><strong>800 Realizovaných klientov.</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="timeline-event">
+                        <div class="timeline-content">
+                            <div class="year">2019</div>
+                            <ul>
+                                <li>Prehliadky dosiahli <strong>100 mil. náhľadov.</strong></li>
+                                <li><strong>1 700 Realizovaných klientov.</strong></li>
+                                <li>Prvý správca firemných zápisov GMB.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- ŘÁDEK 2 -->
+                    <div class="timeline-event">
+                        <div class="timeline-content">
+                            <div class="year">2020</div>
+                            <ul>
+                                <li>Prehliadky dosiahli <strong>120 mil. náhľadov.</strong></li>
+                                <li><strong>2 000 klientov.</strong></li>
+                                <li>Otvorenie oddelenia podpory GMB.</li>
+                                <li>Prví klienti v stálej správe GMB.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="timeline-event">
+                        <div class="timeline-content">
+                            <div class="year">2021</div>
+                            <ul>
+                                <li>Otvorenie maďarského zastúpenia.</li>
+                                <li><strong>2 500 klientov.</strong></li>
+                                <li>Prehliadky dosiahli <strong>150 mil. náhľadov.</strong></li>
+                                <li><strong>50 mil. náhľadov</strong> na banneroch.</li>
+                                <li>Otvorenie poľského zastúpenia.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="timeline-event">
+                        <div class="timeline-content">
+                            <div class="year">2022</div>
+                            <ul>
+                                <li>Prehliadky dosiahli <strong>200 mil. náhľadov.</strong></li>
+                                <li><strong>3 000 klientov.</strong></li>
+                                <li><strong>130 mil. náhľadov</strong> na banneroch.</li>
+                                <li>Štart vývoja aplikácie.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="timeline-event">
+                        <div class="timeline-content">
+                            <div class="year">2023</div>
+                            <ul>
+                                <li>Otvorenie cyperského a srbského zastúpenia.</li>
+                                <li>Prehliadky dosiahli <strong>270 mil. náhľadov.</strong></li>
+                                <li><strong>3 600 klientov.</strong></li>
+                                <li>Otvorenie oddelenia Google Ads.</li>
+                                <li>Spustenie GSV - Air.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="timeline-event">
+                        <div class="timeline-content">
+                            <div class="year">2024</div>
+                            <ul>
+                                <li>Spustenie aplikácie na testovanie.</li>
+                                <li>Spustenie aplikácie medzi klientmi.</li>
+                                <li>Cieľ získa <strong>4 500 klientov.</strong></li>
+                                <li>Otvorenie regionálnych zástupcov.</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="timeline-event">
+                        <div class="timeline-content">
+                            <div class="year">2027 (Ciele)</div>
+                            <ul>
+                                <li>Otvorenie v Chorvátsku, Španielsku a Rumunsku.</li>
+                                <li>Dosiahnutie <strong>10 000 klientov.</strong></li>
+                                <li><strong>500 mil. náhľadov</strong> na prehliadkach.</li>
+                                <li><strong>750 mil. náhľadov</strong> na banneroch.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div> <!-- Konec obsahu stránky -->
+            <!-- Použijeme třídu pdf-footer -->
+            <div class="pdf-footer">
+                ${footerText}
+            </div>
+        </div>
+        `;
+            }
+
+            /**
+             * Vytvoří HTML pro stránku "Přidaná hodnota" (Strana 2).
+             * @param {string} logoUrl
+             * @param {string} footerText Text pro patičku (např. 'Strana 2')
+             */
+            function createValuePropPageHtml(logoUrl, footerText) {
+                return `
+        <div class="pdf-page-container" id="pdf-page-content">
+             <div style="min-height: 1050px;"> <!-- Obsah stránky (kromě patičky) -->
+                <div class="header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #34a853; padding-bottom: 20px; margin-bottom: 0;">
+                    <div class="header-title">
+                        <h1 style="color: #34a853; font-size: 28px; margin: 0; font-weight: 700;">Pridaná hodnota služieb</h1>
+                    </div>
+                    <div class="header-logo"><img src="${logoUrl}" alt="Logo firmy" style="max-width: 120px; height: auto;"></div>
+                </div>
+
+                <h2 class="stats-main-title">Dôležité dáta služieb v Google</h2>
+                <p class="stats-main-subtitle">Z reálnych prieskumov vyplývajú nasledujúce percentuálne prínosy našich poskytovaných služieb.</p>
+
+                <!-- Sekce Google Moje Firma -->
+                <div class="stats-section" style="--stat-color: #4285F4;">
+                    <h3>Google Moja Firma <img src="${logoGMB}" alt="Google My Business Logo"></h3>
+                    <div class="stats-grid-container">
+
+                        <div class="stat-item">
+                            <div class="stat-circle-container">
+                                <div class="stat-circle" style="--percent: 70;"></div>
+                                <div class="stat-circle-percent">70%</div>
+                            </div>
+                            <div class="stat-content">
+                                <h4 style="color: var(--stat-color);">Návštevnosť</h4>
+                                <p>Podniky v GMB majú o <strong>70 % vyššiu šancu</strong> prilákať zákazníkov.</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-circle-container">
+                                <div class="stat-circle" style="--percent: 50;"></div>
+                                <div class="stat-circle-percent">50%</div>
+                            </div>
+                            <div class="stat-content">
+                                <h4 style="color: var(--stat-color);">Zvýšenie predaja</h4>
+                                <p>Zákazníci sú až o <strong>50 % pravdepodobnejšie</strong> naklonení k nákupu.</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-circle-container">
+                                <div class="stat-circle" style="--percent: 93;"></div>
+                                <div class="stat-circle-percent">93%</div>
+                            </div>
+                            <div class="stat-content">
+                                <h4 style="color: var(--stat-color);">Využitie Máp</h4>
+                                <p><strong>93 % spotrebiteľov</strong> používa Google Mapy pre lokálne vyhľadávanie.</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-circle-container">
+                                <div class="stat-circle" style="--percent: 64;"></div>
+                                <div class="stat-circle-percent">64%</div>
+                            </div>
+                            <div class="stat-content">
+                                <h4 style="color: var(--stat-color);">Nájdenie kontaktov</h4>
+                                <p><strong>64 % spotrebiteľov</strong> využilo GMB na nájdenie kontaktných údajov.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sekce Google Street View -->
+                <div class="stats-section" style="--stat-color: #34a853;">
+                    <h3>Google Street View <img src="${logoSV}" alt="Street View Trusted Logo"></h3>
+                    <div class="stats-grid-container">
+
+                        <div class="stat-item">
+                            <div class="stat-circle-container">
+                                <div class="stat-circle" style="--percent: 67;"></div>
+                                <div class="stat-circle-percent">67%</div>
+                            </div>
+                            <div class="stat-content">
+                                <h4 style="color: var(--stat-color);">Prvý dojem</h4>
+                                <p>Virtuálne prehliadky majú <strong>lepšie SEO</strong>. <strong>67 % ľudí</strong> očakáva VP.</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-circle-container">
+                                <div class="stat-circle" style="--percent: 97;"></div>
+                                <div class="stat-circle-percent">97%</div>
+                            </div>
+                            <div class="stat-content">
+                                <h4 style="color: var(--stat-color);">Konkurenčná výhoda</h4>
+                                <p><strong>97 % ľudí</strong> vyhľadáva miestne podniky online. VP dáva výhodu.</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-circle-container">
+                                <div class="stat-circle" style="--percent: 59;"></div>
+                                <div class="stat-circle-percent">59%</div>
+                            </div>
+                            <div class="stat-content">
+                                <h4 style="color: var(--stat-color);">Návšteva vs. nákup</h4>
+                                <p>Štúdie ukázali, že <strong>59 % zákazníkov</strong> navštívi podnik v ten istý deň.</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-circle-container">
+                                <div class="stat-circle" style="--percent: 18;"></div>
+                                <div class="stat-circle-percent">18%</div>
+                            </div>
+                            <div class="stat-content">
+                                <h4 style="color: var(--stat-color);">Lokálne nákupy</h4>
+                                <p>Až <strong>18 % lokálnych vyhľadávaní</strong> vedie k nákupu v ten istý deň.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sekce Google Ads - VRÁCENO A ZMENŠENO -->
+                <div class="stats-section" style="--stat-color: #f9bc15;">
+                    <h3>Google Ads <img src="${logoAds}" alt="Google Ads Logo"></h3>
+                    <div class="stats-grid-container">
+
+                        <div class="stat-item">
+                            <div class="stat-circle-container">
+                                <div class="stat-circle" style="--percent: 80;"></div>
+                                <div class="stat-circle-percent">80%</div>
+                            </div>
+                            <div class="stat-content">
+                                <h4 style="color: var(--stat-color);">Rozsah využitia</h4>
+                                <p><strong>80 % globálnych podnikov</strong> využíva Google Ads pre PPC kampane.</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-circle-container">
+                                <div class="stat-circle" style="--percent: 43;"></div>
+                                <div class="stat-circle-percent">43%</div>
+                            </div>
+                            <div class="stat-content">
+                                <h4 style="color: var(--stat-color);">Účinnosť</h4>
+                                <p>Reklamy prijímajú <strong>65 % kliknutí</strong>. <strong>43 % užívateľov</strong> uviedlo, že si produkt zakúpilo.</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-circle-container">
+                                <div class="stat-circle" style="--percent: 62;"></div>
+                                <div class="stat-circle-percent">62%</div>
+                            </div>
+                            <div class="stat-content">
+                                <h4 style="color: var(--stat-color);">CTR a Mobily</h4>
+                                <p>Priemerná preklikovosť je <strong>4,6 %</strong>. Takmer <strong>62 % kliknutí</strong> je z mobilov.</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-item">
+                            <div class="stat-circle-container">
+                                <div class="stat-circle" style="--percent: 62;"></div>
+                                <div class="stat-circle-percent">62%</div>
+                            </div>
+                            <div class="stat-content">
+                                <h4 style="color: var(--stat-color);">Podiel na trhu</h4>
+                                <p>Google Ads má <strong>61,73 % podiel</strong> na trhu s PPC reklamou.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div> <!-- Konec obsahu stránky -->
+            <!-- Použijeme třídu pdf-footer -->
+            <div class="pdf-footer">
+                ${footerText}
+            </div>
+        </div>
+        `;
+            }
+
+            /**
+             * Vytvoří HTML pro stránku "Rozsah služeb" (Strana 4).
+             * @param {Array<Object>} checkedItems
+             * @param {string} logoUrl
+             * @param {string} footerText Text pro patičku (např. 'Strana 4')
+             */
+            function createScopePageHtml(checkedItems, logoUrl, footerText) {
+                let itemsHtml = '';
+                if (checkedItems.length > 0) {
+                    itemsHtml = checkedItems.map(item => {
+                        const description = serviceDescriptions[item.id] || 'Popis pre túto službu bude doplnený.';
+                        return `
+                <div class="scope-item">
+                    <h4>${item.name}</h4>
+                    <p>${description}</p>
+                    <span class="scope-details">Počet: ${item.quantity} ks | Typ platby: ${item.paymentType}</span>
+                </div>
+                `
+                    }).join('');
+                } else {
+                    itemsHtml = '<p style="font-size: 15px; line-height: 1.6; color: #555;">Neboli vybrané žiadne konkrétne služby.</p>';
+                }
+
+                return `
+        <div class="pdf-page-container" id="pdf-page-content">
+             <div style="min-height: 1050px;"> <!-- Obsah stránky (kromě patičky) -->
+                <div class="header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #34a853; padding-bottom: 20px; margin-bottom: 30px;">
+                    <div class="header-title">
+                        <h1 style="color: #34a853; font-size: 28px; margin: 0; font-weight: 700;">Detailný rozsah služieb</h1>
+                    </div>
+                    <div class="header-logo"><img src="${logoUrl}" alt="Logo firmy" style="max-width: 120px; height: auto;"></div>
+                </div>
+
+                <p style="font-size: 14px; line-height: 1.6; color: #555; margin-bottom: 25px;">
+                    Nižšie nájdete podrobný popis a prínosy Vami vybraných služieb, ktoré tvoria Váš individuálny návrh riešenia.
+                </p>
+
+                <div class="scope-list-container">
+                    ${itemsHtml}
+                </div>
+             </div> <!-- Konec obsahu stránky -->
+             <!-- Použijeme třídu pdf-footer -->
+            <div class="pdf-footer">
+                ${footerText}
+            </div>
+        </div>
+        `;
+            }
+
+            /**
+             * Vytvoří HTML pro stránku "Reference a Kontakty" (Strana 5).
+             * @param {string} logoUrl
+             * @param {string} footerText Text pro patičku (např. 'Strana 5')
+             */
+            function createContactPageHtml(logoUrl, footerText) {
+                const clientLogosUrl = 'https://iili.io/Kr18MPV.png'; // Nahraďte URL obrázkem s logy klientů
+                return `
+        <div class="pdf-page-container" id="pdf-page-content">
+             <div style="min-height: 1050px;"> <!-- Obsah stránky (kromě patičky) -->
+                <div class="header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #34a853; padding-bottom: 20px; margin-bottom: 30px;">
+                    <div class="header-title">
+                        <h1 style="color: #34a853; font-size: 28px; margin: 0; font-weight: 700;">Referencie a Kontakt</h1>
+                    </div>
+                    <div class="header-logo"><img src="${logoUrl}" alt="Logo firmy" style="max-width: 120px; height: auto;"></div>
+                </div>
+
+                <h3 style="font-size: 18px; font-weight: 600; color: #202124; margin-top: 15px; margin-bottom: 15px;">Naše výsledky v číslach</h3>
+                <div class="stats-summary-grid">
+                    <div class="stat-summary-item">
+                        <h4 class="number">5 698+</h4>
+                        <p class="label">Spokojných klientov</p>
+                    </div>
+                    <div class="stat-summary-item">
+                        <h4 class="number">96 344+</h4>
+                        <p class="label">Zhotovených fotografií</p>
+                    </div>
+                    <div class="stat-summary-item">
+                        <h4 class="number">307 000 000+</h4>
+                        <p class="label">Zobrazení fotografií</p>
+                    </div>
+                    <div class="stat-summary-item">
+                        <h4 class="number">328 000 000+</h4>
+                        <p class="label">Zobrazení reklamných bannerov</p>
+                    </div>
+                </div>
+
+                <h3 style="font-size: 18px; font-weight: 600; color: #202124; margin-top: 20px;">Významní klienti</h3>
+                <div class="client-logos-container">
+                    <img src="${clientLogosUrl}" alt="Referencie" style="max-width: 100%; height: auto; display: block;">
+                </div>
+
+                <div class="closing-text" style="margin-top: 25px; margin-bottom: 30px;"> <!-- Added margin-bottom -->
+                    <h3 style="font-size: 18px; font-weight: 600; color: #202124; margin-top: 20px;">Tešíme sa na spoluprácu</h3>
+                    <p style="font-size: 14px; line-height: 1.6; color: #555; margin-top: 10px;">
+                        V prípade akýchkoľvek otázok k tejto ponuke alebo ak si prajete vykonať akékoľvek úpravy, neváhajte nás prosím kontaktovať. Sme pripravení všetko doladiť k Vašej maximálnej spokojnosti.
+                    </p>
+                    <p style="font-size: 14px; line-height: 1.6; color: #555; margin-top: 10px;">
+                        Výber partnera pre správu Vašej digitálnej prítomnosti je dôležité rozhodnutie. V spoločnosti VIEW Vám ponúkame nielen služby popísané vyššie, ale predovšetkým naše dlhoročné know-how. Od roku 2014 sme prešli vývojom od lídrov v Street View až po expertov na celý ekosystém Google, vrátane vývoja vlastných technológií.
+                    </p>
+                    <p style="font-size: 14px; line-height: 1.6; color: #555; margin-top: 10px;">
+                        Zvoliť si nás znamená mať jedného silného a skúseného partnera pre správu firemných profilov, recenzií, platenej reklamy aj virtuálnych prehliadok.
+                    </p>
+                    <p style="font-size: 14px; line-height: 1.6; color: #555; margin-top: 10px; font-weight: 600; color: #202124;">
+                        Tešíme sa na možnosť začať našu spoluprácu a aktívne sa podieľať na Vašom raste.
+                    </p>
+                </div>
+            </div> <!-- Konec obsahu stránky -->
+            <!-- Použijeme třídu pdf-footer -->
+            <div class="pdf-footer">
+                ${footerText}
+            </div>
+        </div>
+        `;
+            }
+
+            /**
+             * Vytvoří HTML pro samotnou Cenovou nabídku (Strana 3).
+             * @param {Object} clientInfo
+             * @param {string} itemsHtml
+             * @param {string} totalsHtml
+             * @param {string} logoUrl
+             * @param {string} issueDateStr
+             * @param {string} validUntilDateStr
+             * @param {string} footerText Text pro patičku (např. 'Strana 3')
+             */
+            function createQuotePageHtml(clientInfo, itemsHtml, totalsHtml, logoUrl, issueDateStr, validUntilDateStr, footerText) {
+                return `
+        <div class="pdf-page-container" id="pdf-page-content">
+             <div style="min-height: 1050px;"> <!-- Obsah stránky (kromě patičky) -->
+                <div class="header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #34a853; padding-bottom: 20px; margin-bottom: 30px;">
+                    <div class="header-title"><h1>CENOVÁ PONUKA</h1></div>
+                    <div class="header-logo"><img src="${logoUrl}" alt="Logo firmy" style="max-width: 120px; height: auto;"></div>
+                </div>
+
+                <div class="invoice-details" style="font-size: 14px; line-height: 1.6;">
+                    <p style="margin: 5px 0;"><strong>Dátum vystavenia:</strong> ${issueDateStr}</p>
+                    <p style="margin: 5px 0;"><strong>Platnosť ponuky do:</strong> ${validUntilDateStr}</p>
+                </div>
+
+                <div class="section-block" style="display: flex; justify-content: space-between; margin-bottom: 30px; font-size: 14px; line-height: 1.6;">
+                    <div class="dodavatel">
+                        <h3 style="color: #34a853; font-size: 16px; margin-bottom: 8px; font-weight: 600;">Dodávateľ:</h3>
+                        <p style="margin: 0; color: #555;"><strong>STREEWVIEW CZECH s.r.o.</strong><br>Na Folimance 2155/15<br>Praha - Vinohrady, 120 00<br>IČ: 08619671<br>DIČ: CZ08619671</p>
+                    </div>
+                    <div class="zakaznik">
+                        <h3 style="color: #34a853; font-size: 16px; margin-bottom: 8px; font-weight: 600;">Zákazník:</h3>
+                        <p style="margin: 0; color: #555;"><strong>${clientInfo.companyName}</strong><br>
+                        IČO: ${clientInfo.ico}<br>
+                        Kontaktná osoba: ${clientInfo.contactPerson}<br>
+                        Email: ${clientInfo.email}<br>
+                        Telefón: ${clientInfo.phone}</p>
+                    </div>
+                </div>
+
+                <table class="item-table" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <thead style="background-color: #f1f3f4;">
+                        <tr>
+                            <th style="text-align: left; padding: 12px; border-bottom: 1px solid #ebf4f5; font-size: 13px; color: #3c4043; font-weight: 600;">Popis</th>
+                            <th style="text-align: left; padding: 12px; border-bottom: 1px solid #ebf4f5; font-size: 13px; color: #3c4043; font-weight: 600;">Typ platby</th>
+                            <th style="text-align: center; padding: 12px; border-bottom: 1px solid #ebf4f5; font-size: 13px; color: #3c4043; font-weight: 600; width: 50px;">Počet</th>
+                            <th style="text-align: right; padding: 12px; border-bottom: 1px solid #ebf4f5; font-size: 13px; color: #3c4043; font-weight: 600; width: 100px;">Cena pred zľavou</th>
+                            <th style="text-align: center; padding: 12px; border-bottom: 1px solid #ebf4f5; font-size: 13px; color: #3c4043; font-weight: 600; width: 60px;">Zľava (%)</th>
+                            <th style="text-align: right; padding: 12px; border-bottom: 1px solid #ebf4f5; font-size: 13px; color: #3c4043; font-weight: 600; width: 110px;">Cena po zľave</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoice-items">${itemsHtml}</tbody>
+                </table>
+
+                <div class="total-summary" style="margin-top: 30px; margin-bottom: 30px;"> <!-- Added margin-bottom -->
+                    <table style="width: 60%; margin-left: auto; border-collapse: collapse;">
+                        <tbody id="pdf-totals">${totalsHtml}</tbody>
+                    </table>
+                </div>
+             </div> <!-- Konec obsahu stránky -->
+             <!-- Použijeme třídu pdf-footer -->
+            <div class="pdf-footer">
+                ${footerText}
+            </div>
+        </div>
+        `;
+            }
+
+            // --- PŮVODNÍ FUNKCE POTŘEBNÉ PRO STRANU 3 ---
+            /**
+             * Generuje HTML řádky pro tabulku položek v PDF.
+             */
             function generatePdfItemsHtml() {
                 let html = '';
+                const mainPaymentTerm = document.getElementById('package_payment_term_select').value;
+                const gmfManagePaymentTerm = document.getElementById('gmf_manage_payment_term_select').value;
+
                 document.querySelectorAll('#summary-section .summary-item').forEach(itemRow => {
                     const name = itemRow.querySelector('.summary-item-name').firstChild.textContent.trim();
                     const paymentType = itemRow.querySelector('.summary-item-payment-type')?.textContent.replace(' platba', '') || 'Jednorazová';
                     const quantity = parseInt(itemRow.querySelector('.summary-quantity').value);
-                    const discount = parseFloat(itemRow.querySelector('.summary-discount').value);
-                    const finalPrice = parseFloat(itemRow.querySelector('.price-discounted').textContent.replace(/[^\d,-]/g, '').replace(',', '.'));
-                    let basePricePerUnit = (quantity > 0 && (1 - discount / 100) > 0) ? (finalPrice / quantity) / (1 - discount / 100) : 0;
-                    html += `<tr><td class="item-name">${name}</td><td>${paymentType}</td><td>${quantity}</td><td>${formatCurrency(basePricePerUnit)}</td><td>${discount}%</td><td>${formatCurrency(finalPrice)}</td></tr>`;
+                    const discount = parseFloat(itemRow.querySelector('.summary-discount').value); // Manuální sleva %
+                    const finalPriceText = itemRow.querySelector('.price-discounted').textContent;
+                    // Handle potential non-numeric values like "individuální"
+                    const finalPrice = finalPriceText.toLowerCase().includes('individu') ? 0 : parseFloat(finalPriceText.replace(/[^\d.,-]/g, '').replace(',', '.'));
+
+                    let originalUnitPice = parseFloat(itemRow.dataset.price);
+                    const itemId = itemRow.dataset.id;
+                    let priceBeforeAllDiscountsText = '';
+
+                    if (itemId.startsWith('package_')) {
+                        originalUnitPice = calculatePackagePrice(itemId, mainPaymentTerm);
+                    } else if (itemId.includes('_manage_')) {
+                        originalUnitPice = calculateGmfManagePrice(itemId, gmfManagePaymentTerm);
+                    } else {
+                        // Check for tier pricing
+                        const tierPrice = itemRow.dataset.priceTier ? parseFloat(itemRow.dataset.priceTier) : null;
+                        if (tierPrice !== null && quantity >= 5) {
+                            // For PDF display, we show the original unit price before tier discount here
+                            // originalUnitPice remains the base price from data-price
+                        }
+                    }
+
+                    const priceBeforeAllDiscounts = originalUnitPice * quantity;
+
+                    // Handle display for individual pricing
+                    if (originalUnitPice === 0 && (itemId.startsWith('package_') || itemId.includes('_manage_'))) {
+                        priceBeforeAllDiscountsText = 'Individuálne';
+                    } else {
+                        priceBeforeAllDiscountsText = formatCurrency(priceBeforeAllDiscounts);
+                    }
+                    const finalPriceDisplay = finalPrice === 0 && priceBeforeAllDiscounts === 0 ? 'Individuálne' : formatCurrency(finalPrice);
+
+                    html += `
+                <tr style="font-size: 13px; border-bottom: 1px solid #ebf4f5;">
+                    <td class="item-name" style="padding: 12px; font-weight: 500; color: #202124;">${name}</td>
+                    <td style="padding: 12px;">${paymentType}</td>
+                     <td style="padding: 12px; text-align: center;">${quantity}</td>
+                     <td style="padding: 12px; text-align: right;">${priceBeforeAllDiscountsText}</td>
+                     <td style="padding: 12px; text-align: center;">${discount}%</td>
+                     <td style="padding: 12px; text-align: right; font-weight: 600;">${finalPriceDisplay}</td>
+                </tr>
+            `;
                 });
                 return html;
             }
 
-            function calculateAndRenderPdfTotals(pdfContainer) {
-                const totalsBody = pdfContainer.querySelector('#pdf-totals');
-                if(!totalsBody) return;
-                const totalDiscount = parseFloat($('#total-discount-amount').textContent.replace(/[^\d,-]/g, '').replace(',', '.'));
-                const recurringTotal = parseFloat($('#total-recurring-price').textContent.replace(/[^\d,-]/g, '').replace(',', '.'));
-                const onetimeTotal = parseFloat($('#total-onetime-price').textContent.replace(/[^\d,-]/g, '').replace(',', '.'));
+            /**
+             * Vypočítá a vloží celkové součty do HTML šablony PDF. (UPRAVENO PRO EUR)
+             * POZNÁMKA: Upraveno pro vložení do tbody elementu.
+             */
+            function calculateAndRenderPdfTotals(totalsBody) {
+                if (!totalsBody) return;
+
+                // Odstranění symbolu měny z textu před parsováním (nyní €)
+                const totalDiscount = parseFloat($('#total-discount-amount').textContent.replace(/[^\d.,-]/g, '').replace(',', '.'));
+                const recurringTotal = parseFloat($('#total-recurring-price').textContent.replace(/[^\d.,-]/g, '').replace(',', '.'));
+                const onetimeTotal = parseFloat($('#total-onetime-price').textContent.replace(/[^\d.,-]/g, '').replace(',', '.'));
                 const subtotal = recurringTotal + onetimeTotal;
-                const taxRate = 0.23; // DPH na Slovensku
-                const taxAmount = subtotal * taxRate;
-                const finalTotal = subtotal + taxAmount;
-                totalsBody.innerHTML = `
-                    <tr><td class="label" style="color:#d93025;">Celková zľava:</td><td class="value" style="color:#d93025;">-${formatCurrency(totalDiscount)}</td></tr>
-                    <tr><td class="label">Spolu paušálne platby:</td><td class="value">${formatCurrency(recurringTotal)}</td></tr>
-                    <tr><td class="label">Spolu jednorazové platby:</td><td class="value">${formatCurrency(onetimeTotal)}</td></tr>
-                    <tr><td class="label">Medzisúčet (bez DPH):</td><td class="value">${formatCurrency(subtotal)}</td></tr>
-                    <tr><td class="label">DPH (23%):</td><td class="value">${formatCurrency(taxAmount)}</td></tr>
-                    <tr class="total-row"><td class="label">CELKOVÁ SUMA (vr. DPH):</td><td class="value">${formatCurrency(finalTotal)}</td></tr>`;
+
+                let totalsHtml = `
+            <tr style="font-size: 14px; border-bottom: 1px solid #ebf4f5;"><td class="label" style="padding: 10px; color: #d93025; text-align: right; padding-right: 20px;">Celková zľava:</td><td class="value" style="padding: 10px; font-weight: 600; text-align: right; color: #d93025;">-${formatCurrency(totalDiscount)}</td></tr>
+            <tr style="font-size: 14px; border-bottom: 1px solid #ebf4f5;"><td class="label" style="padding: 10px; color: #555; text-align: right; padding-right: 20px;">Celkom paušálne platby:</td><td class="value" style="padding: 10px; font-weight: 600; text-align: right;">${formatCurrency(recurringTotal)}</td></tr>
+            <tr style="font-size: 14px; border-bottom: 1px solid #ebf4f5;"><td class="label" style="padding: 10px; color: #555; text-align: right; padding-right: 20px;">Celkom jednorazové platby:</td><td class="value" style="padding: 10px; font-weight: 600; text-align: right;">${formatCurrency(onetimeTotal)}</td></tr>
+            <tr class="total-row" style="font-weight: 700; font-size: 16px; color: #34a853; border-top: 2px solid #34a853;"><td class="label" style="padding: 15px 10px 10px 10px; text-align: right; padding-right: 20px;">CELKOVÁ ČIASTKA (bez DPH):</td><td class="value" style="padding: 15px 10px 10px 10px; font-weight: 700; text-align: right;">${formatCurrency(subtotal)}</td></tr>
+        `;
+                totalsBody.innerHTML = totalsHtml;
             }
-            
+
+            /**
+             * NOVÁ HLAVNÍ FUNKCE PRO GENERATE AND DOWNLOAD PDF
+             * Sestaví vícestránkové PDF
+             */
+            async function generateAndDownloadPdf() {
+                const createBtn = $(`#generate-offer-pdf-btn`);
+                const originalButtonText = createBtn.innerHTML;
+                createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generujem...'; // Simplified initial message
+                createBtn.disabled = true;
+
+                const {
+                    jsPDF
+                } = window.jspdf;
+                const pdf = new jsPDF({
+                    orientation: 'p',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = pdf.internal.pageSize.getHeight();
+
+                // Sdílené proměnné
+                const clientInfo = getClientInfo();
+                const checkedItems = getCheckedItemsData();
+                const issueDate = new Date();
+                const validUntilDate = new Date();
+                validUntilDate.setDate(issueDate.getDate() + 7);
+                const issueDateStr = issueDate.toLocaleDateString('cs-CZ');
+                const validUntilDateStr = validUntilDate.toLocaleDateString('cs-CZ');
+                const onlyQuote = $('#generate-only-quote').checked;
+
+                // Vytvoření dočasného kontejneru pro renderování
+                const pdfContainer = document.createElement('div');
+                pdfContainer.style.position = 'absolute';
+                pdfContainer.style.left = '-9999px';
+                pdfContainer.style.width = '950px'; // Renderovací šířka
+                document.body.appendChild(pdfContainer);
+
+                // Styly pro vnější wrapper v pdfContainer
+                const renderWrapperStyles = `
+             font-family: sans-serif;
+             color: #3c4043;
+             background-color: #ffffff;
+             width: 100%; /* Take full width of parent (950px) */
+             /* Added overflow: hidden to help contain absolute footer */
+             overflow: hidden;
+         `;
+
+                // Helper funkce pro renderování jedné stránky
+                const renderPage = async (htmlContent, pageNumber, totalPages) => {
+                    createBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Generujem... (Strana ${pageNumber}/${totalPages})`;
+
+                    // Vložíme HTML do wrapperu
+                    pdfContainer.innerHTML = `<div style="${renderWrapperStyles}">${htmlContent}</div>`;
+                    const contentElement = pdfContainer.querySelector('#pdf-page-content'); // Toto je .pdf-page-container
+                    if (!contentElement) {
+                        console.error("Chyba: Element #pdf-page-content (.pdf-page-container) nenalezen pro stránku", pageNumber);
+                        return;
+                    }
+                    // Temporarily make overflow visible for html2canvas
+                    const originalOverflow = contentElement.style.overflow;
+                    contentElement.style.overflow = 'visible';
+                    // Ensure min-height is applied before measuring scrollHeight
+                    contentElement.style.minHeight = '1123px'; // Ensure base height
+
+                    // Dáme prohlížeči čas na vykreslení
+                    await new Promise(resolve => setTimeout(resolve, 50)); // <-- PAUZA 50ms
+
+                    // Calculate necessary height, including absolutely positioned footer
+                    const scrollHeight = contentElement.scrollHeight;
+                    // Explicitně nastavíme výšku PŘED snímáním
+                    contentElement.style.height = `${scrollHeight}px`;
+
+                    const canvas = await html2canvas(contentElement, {
+                        scale: 2.0,
+                        useCORS: true,
+                        allowTaint: true,
+                        width: contentElement.offsetWidth, // Použijeme skutečnou šířku elementu
+                        height: scrollHeight, // Použijeme vypočtenou scrollHeight
+                        windowHeight: scrollHeight // Řekneme html2canvas, jak vysoké "okno" má použít
+                    });
+                    // Vrátíme původní styly
+                    contentElement.style.height = ''; // <-- Reset výšky
+                    contentElement.style.overflow = originalOverflow;
+                    contentElement.style.minHeight = ''; // Remove minHeight after capture
+
+                    const imgData = canvas.toDataURL('image/jpeg', 0.9);
+                    const canvasWidth = canvas.width;
+                    const canvasHeight = canvas.height;
+
+                    const imgWidthMM = pdfWidth; // Obrázek bude na celou šířku A4
+                    const imgHeightMM = (canvasHeight * imgWidthMM) / canvasWidth; // Vypočítáme výšku v mm
+                    let heightLeft = imgHeightMM;
+                    let position = 0;
+                    const startPageCount = pdf.internal.getNumberOfPages();
+
+                    // Přidáme novou stránku POUZE pokud nejsme na úplně první stránce (kterou jsPDF vytvoří sám)
+                    if (pdf.internal.getNumberOfPages() > 0) {
+                        pdf.addPage();
+                    }
+
+                    // Vložení první části nebo celého obrázku
+                    pdf.addImage(imgData, 'JPEG', 0, position, imgWidthMM, imgHeightMM);
+                    heightLeft -= pdfHeight;
+
+                    // Zpracování přetečení obsahu na další stránky PDF
+                    while (heightLeft > pdfHeight * 0.05) { // <-- Tolerance 5%
+                        position = heightLeft - imgHeightMM; // Výpočet pozice pro další část obrázku
+                        pdf.addPage();
+                        createBtn.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Generujem... (Preteká strana ${pageNumber}...)`;
+                        pdf.addImage(imgData, 'JPEG', 0, position, imgWidthMM, imgHeightMM);
+                        heightLeft -= pdfHeight;
+                    }
+                    return pdf.internal.getNumberOfPages() - startPageCount;
+                };
+
+                try {
+                    const itemsHtml = generatePdfItemsHtml();
+                    const totalsHtml = (() => {
+                        const totalsContainer = document.createElement('tbody');
+                        calculateAndRenderPdfTotals(totalsContainer);
+                        return totalsContainer.innerHTML;
+                    })();
+
+                    let pagesHtml;
+                    const totalLogicalPages = onlyQuote ? 1 : 5;
+
+                    // Logika pro výběr stránek
+                    if (onlyQuote) {
+                        // Generovat POUZE cenovou nabídku
+                        pagesHtml = [
+                            createQuotePageHtml(clientInfo, itemsHtml, totalsHtml, logoUrl, issueDateStr, validUntilDateStr, `Cenová ponuka (1/${totalLogicalPages})`)
+                        ];
+                    } else {
+                        // Generovat kompletní nabídku
+                        pagesHtml = [
+                            createIntroPageHtml(clientInfo, logoUrl, 'Strana 1'),
+                            createValuePropPageHtml(logoUrl, 'Strana 2'),
+                            createQuotePageHtml(clientInfo, itemsHtml, totalsHtml, logoUrl, issueDateStr, validUntilDateStr, 'Strana 3'),
+                            createScopePageHtml(checkedItems, logoUrl, 'Strana 4'),
+                            createContactPageHtml(logoUrl, 'Strana 5')
+                        ];
+                    }
+
+                    let physicalPagesTotal = 0;
+                    // Renderování jednotlivých stránek
+                    for (let i = 0; i < pagesHtml.length; i++) {
+                        const logicalPageNum = i + 1;
+                        const pagesAdded = await renderPage(pagesHtml[i], logicalPageNum, totalLogicalPages);
+                        physicalPagesTotal += pagesAdded;
+                    }
+
+                    // 1. OPRAVA: Odstranění první prázdné stránky, kterou jsPDF automaticky vytvoří.
+                    if (pdf.internal.getNumberOfPages() > 1) {
+                        pdf.deletePage(1);
+                    }
+
+                    // Uložení PDF
+                    createBtn.innerHTML = '<i class="fas fa-check"></i> Hotovo';
+                    const companyName = clientInfo.companyName === 'Vás' ? 'Nešpecifikované' : clientInfo.companyName;
+                    const fileName = `Návrh riešenia - ${companyName}.pdf`;
+                    pdf.save(fileName);
+
+                } catch (error) {
+                    console.error('Chyba pri generovaní PDF:', error);
+                    showCustomAlert('Pri generovaní PDF došlo k chybe. Skúste to prosím znova.');
+                } finally {
+                    if (document.body.contains(pdfContainer)) { // Check if container exists before removing
+                        document.body.removeChild(pdfContainer); // Úklid
+                    }
+                    setTimeout(() => {
+                        createBtn.innerHTML = originalButtonText;
+                        createBtn.disabled = false;
+                    }, 2000); // Delay to show "Hotovo"
+                }
+            }
+            // --- Obsluha modálního okna ---
+            // Otevření
             $('#open-modal-btn').addEventListener('click', () => {
-                 if (summarySection.classList.contains('hidden') || offerSection.querySelectorAll('input[type="checkbox"]:checked').length === 0) {
-                     const messageBox = document.createElement('div');
-                     messageBox.style.cssText = `position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background-color: #fff; border: 2px solid var(--danger-color); border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); padding: 20px 30px; z-index: 1001; text-align: center; max-width: 300px;`;
-                     messageBox.innerHTML = `<p style="margin: 0; font-size: 1.1em; font-weight: 600;">Najprv vyberte aspoň jednu položku.</p><button style="margin-top: 15px; padding: 8px 16px; border: none; background-color: var(--primary-color); color: white; border-radius: 5px; cursor: pointer;" onclick="this.parentNode.remove()">OK</button>`;
-                     document.body.appendChild(messageBox);
-                     setTimeout(() => messageBox.remove(), 3000);
-                     return;
-                 }
+                if (summarySection.classList.contains('hidden') || offerSection.querySelectorAll('input[type="checkbox"]:checked').length === 0) {
+                    showCustomAlert('Najprv vyberte aspoň jednu položku.');
+                    return;
+                }
                 infoModal.classList.remove('hidden');
             });
-            
+
+            // Zavření
             $('.close-modal-btn').addEventListener('click', () => infoModal.classList.add('hidden'));
-            infoModal.addEventListener('click', e => { if (e.target === infoModal) infoModal.classList.add('hidden'); });
+            infoModal.addEventListener('click', (e) => {
+                if (e.target === infoModal) {
+                    infoModal.classList.add('hidden');
+                }
+            });
+
+            // Akce v modálním okně
             $('#generate-offer-pdf-btn').addEventListener('click', () => generateAndDownloadPdf());
-            
-            updateSummary();
+
+            // --- Inicializace ---
+            document.getElementById('package_payment_term_select').value = 'yearly';
+            document.getElementById('gmf_manage_payment_term_select').value = 'yearly';
+            // updateSummary(); // Zavoláme updateSummary při načtení stránky, aby se skryla rekapitulace
+            recalculateTotals(); // Přepočítá ceny v tabulkách při načtení
         });
     </script>
 </body>
 </html>
-
